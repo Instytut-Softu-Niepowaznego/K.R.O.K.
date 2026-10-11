@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Architektura K.R.O.K</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=latin-ext">
+<style>
+/* Layout: wejście → harness (model główny ⇄ model decyzyjny, pod nimi narzędzia) → wyjście; pod harnessem baza danych */
+:root {
+  --bg: #FFFFFF;
+  --ink: #121417;
+  --muted: #5A6068;
+  --line: #D8DBDF;
+  --arrow: #6A7078;
+  --card: #FFFFFF;
+  --core: #F6F5F3;
+  --core-line: #D7373B;
+  --green: #2C8A3C;
+  --green-bg: #EEF7EF;
+  --solid: #121417;
+  --solid-ink: #FFFFFF;
+  --solid-muted: #B9BEC5;
+
+  --f-sans: "Hanken Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --gap: 48px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1113; --ink: #ECEEF0; --muted: #9AA0A7; --line: #2C3036; --arrow: #8A9098;
+    --card: #181B1F; --core: #15171A; --core-line: #F06A6D;
+    --green: #62C770; --green-bg: #12241A;
+    --solid: #ECEEF0; --solid-ink: #121417; --solid-muted: #4E545B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1113; --ink: #ECEEF0; --muted: #9AA0A7; --line: #2C3036; --arrow: #8A9098;
+  --card: #181B1F; --core: #15171A; --core-line: #F06A6D;
+  --green: #62C770; --green-bg: #12241A;
+  --solid: #ECEEF0; --solid-ink: #121417; --solid-muted: #4E545B;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.45 var(--f-sans);
+  padding: 72px 24px 96px;
+}
+.page { max-width: 1440px; margin: 0 auto; display: grid; gap: 56px; }
+
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px 40px; }
+h1 { margin: 0; font: 700 clamp(40px, 5vw, 60px)/1 var(--f-sans); letter-spacing: -0.035em; }
+header p { margin: 0; font-size: 20px; color: var(--muted); }
+
+/* ---------- schemat ---------- */
+.diagram {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr) 270px;
+  column-gap: var(--gap);
+  align-items: start;
+}
+
+/* boczne kontenery */
+.box { border: 2px solid var(--green); background: var(--green-bg); border-radius: 12px; padding: 18px 16px; display: grid; gap: 10px; position: relative; }
+.box.dashed { border: 2px dashed var(--ink); background: var(--bg); }
+.box-label { padding: 2px 4px 6px; font: 600 13px/1.2 var(--f-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+.dashed .box-label { color: var(--ink); }
+
+.item { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; display: grid; gap: 2px; position: relative; }
+.item b { font: 600 17px/1.25 var(--f-sans); }
+.item span { font-size: 14px; color: var(--muted); }
+.item.ghost { background: transparent; border-style: dashed; }
+.item.ghost span { font-style: italic; }
+.item.ghost b { font-weight: 500; font-size: 15px; }
+
+/* strzałki poziome */
+.h-arrow { position: absolute; top: 50%; height: 2px; background: var(--arrow); }
+.h-arrow::after {
+  content: ""; position: absolute; right: -8px; top: -5px;
+  border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 8px solid var(--arrow);
+}
+/* z karty "Planista" przez padding i ramkę kontenera do harnessu */
+.to-core { left: 100%; width: calc(16px + 2px + var(--gap) - 8px); }
+/* z harnessu do kontenera wyjścia */
+.from-core { right: calc(100% + 2px + 8px); top: 140px; width: calc(var(--gap) - 8px); }
+
+/* harness */
+.core { border: 2px solid var(--core-line); border-radius: 12px; background: var(--core); padding: 22px 20px 24px; display: grid; gap: 22px; }
+.core-head { display: grid; gap: 6px; }
+.core-head h2 { margin: 0; font: 700 22px/1.2 var(--f-sans); letter-spacing: -0.01em; }
+.core-head code { font: 400 14px/1.4 var(--f-mono); color: var(--muted); }
+
+.models { display: grid; grid-template-columns: minmax(0, 1fr) 140px minmax(0, 1fr); align-items: stretch; }
+.model { border-radius: 10px; padding: 18px 18px 20px; display: grid; gap: 6px; align-content: start; }
+.model .k { font: 500 12px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
+.model b { font: 700 24px/1.15 var(--f-sans); letter-spacing: -0.02em; }
+.model span { font-size: 15px; }
+.model.main { background: var(--solid); color: var(--solid-ink); }
+.model.main .k, .model.main span { color: var(--solid-muted); }
+.model.decide { background: var(--card); border: 2px solid var(--ink); }
+.model.decide .k, .model.decide span { color: var(--muted); }
+
+.link { display: grid; align-content: center; justify-items: center; gap: 8px; padding: 0 12px; }
+.link i { width: 100%; height: 2px; background: var(--arrow); position: relative; }
+.link i::before, .link i::after { content: ""; position: absolute; top: -5px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.link i::before { left: -2px; border-right: 8px solid var(--arrow); }
+.link i::after { right: -2px; border-left: 8px solid var(--arrow); }
+.link span { font: 400 12px/1.3 var(--f-mono); color: var(--muted); text-align: center; }
+
+.down { display: flex; justify-content: center; align-items: center; gap: 12px; margin-block: -6px; }
+.down i { width: 2px; height: 28px; background: var(--arrow); position: relative; }
+.down i::after { content: ""; position: absolute; left: -5px; bottom: -2px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--arrow); }
+.down span { font: 400 12px/1 var(--f-mono); color: var(--muted); }
+
+.tools-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.tools-head b { font: 600 13px/1.2 var(--f-sans); letter-spacing: .08em; text-transform: uppercase; }
+.tools-head span { font-size: 14px; color: var(--muted); }
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--card); border: 1.5px solid var(--ink); border-radius: 8px; padding: 14px 14px 16px; display: grid; gap: 4px; align-content: start; min-height: 132px; min-width: 0; }
+.card .n { font: 400 14px/1 var(--f-mono); color: var(--core-line); margin-bottom: 8px; }
+.card b { font: 600 17px/1.2 var(--f-sans); }
+.card span { font-size: 14px; line-height: 1.45; color: var(--muted); }
+
+/* baza pod harnessem */
+.under { display: grid; gap: 0; justify-items: center; }
+.both { display: flex; align-items: center; gap: 12px; padding-block: 8px; }
+.both i { width: 2px; height: 36px; background: var(--arrow); position: relative; }
+.both i::before, .both i::after { content: ""; position: absolute; left: -5px; border-left: 6px solid transparent; border-right: 6px solid transparent; }
+.both i::before { top: -2px; border-bottom: 8px solid var(--arrow); }
+.both i::after { bottom: -2px; border-top: 8px solid var(--arrow); }
+.both span { font: 400 12px/1 var(--f-mono); color: var(--muted); }
+.db { width: 100%; background: var(--card); border: 2px solid var(--ink); border-radius: 10px; padding: 16px 18px; display: grid; gap: 4px; }
+.db b { font: 700 19px/1.2 var(--f-sans); }
+.db span { font-size: 14px; color: var(--muted); }
+
+/* wąskie ekrany */
+@media (max-width: 1180px) {
+  .diagram { grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
+  .h-arrow { display: none; }
+}
+@media (max-width: 760px) {
+  body { padding-block: 48px 72px; }
+  .models { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .link { padding: 10px 0; grid-template-columns: auto auto; justify-content: start; }
+  .link i { width: 2px; height: 32px; }
+  .link i::before { left: -5px; top: -2px; border: 6px solid transparent; border-bottom: 8px solid var(--arrow); border-top: 0; }
+  .link i::after { left: -5px; right: auto; top: auto; bottom: -2px; border: 6px solid transparent; border-top: 8px solid var(--arrow); border-bottom: 0; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card { min-height: 0; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header>
+    <h1>Architektura</h1>
+    <p>Model główny planuje, model decyzyjny rozstrzyga, kod sprawdza.</p>
+  </header>
+
+  <div class="diagram">
+
+    <!-- wejście -->
+    <div class="box">
+      <div class="box-label">Wejście</div>
+      <div class="item"><b>Planista</b><span>prośba w zwykłym języku</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
+      <div class="item ghost"><span>„Ułóż plan na semestr zimowy”</span></div>
+      <div class="item ghost"><span>„Kowalski choruje do piątku”</span></div>
+    </div>
+
+    <!-- harness -->
+    <div>
+      <section class="core">
+        <div class="core-head">
+          <h2>Harness K.R.O.K</h2>
+          <code>pętla agenta · walidacja · warunek końca · błędy wracają do modelu</code>
+        </div>
+
+        <div class="models">
+          <div class="model main">
+            <span class="k">Model główny</span>
+            <b>Planista</b>
+            <span>Rozumie prośbę, dobiera narzędzia, buduje i poprawia plan.</span>
+          </div>
+          <div class="link">
+            <span>pyta</span>
+            <i aria-hidden="true"></i>
+            <span>decyzja</span>
+          </div>
+          <div class="model decide">
+            <span class="k">Model wspomagający</span>
+            <b>Decyzyjny</b>
+            <span>Wybiera między poprawnymi wariantami i ocenia kompromisy.</span>
+          </div>
+        </div>
+
+        <div class="down"><i aria-hidden="true"></i><span>wywołują narzędzia</span></div>
+
+        <div class="tools-head"><b>Narzędzia</b><span>kilkadziesiąt, w grupach</span></div>
+        <div class="cards">
+          <div class="card"><span class="n">01</span><b>Dane</b><span>sale, grupy, kursy, prowadzący</span></div>
+          <div class="card"><span class="n">02</span><b>Dostępność</b><span>kiedy kto może, reguły uczelni</span></div>
+          <div class="card"><span class="n">03</span><b>Planowanie</b><span>wolne sloty, dodaj, przesuń, zamień</span></div>
+          <div class="card"><span class="n">04</span><b>Kontrola</b><span>kolizje, typy sal, liczba godzin</span></div>
+          <div class="card"><span class="n">05</span><b>Ocena</b><span>okienka, przejścia, ulubione budynki</span></div>
+          <div class="card"><span class="n">06</span><b>Zastępstwa</b><span>nieobecność, zastępca, nowy dzień</span></div>
+          <div class="card"><span class="n">07</span><b>Wersje</b><span>szkic, różnice, publikacja, cofnięcie</span></div>
+          <div class="card"><span class="n">08</span><b>Eksport</b><span>plan w wybranym formacie</span></div>
+        </div>
+      </section>
+
+      <div class="under">
+        <div class="both"><i aria-hidden="true"></i><span>czytają i zapisują</span></div>
+        <div class="db"><b>Baza danych</b><span>wszystkie dane i wszystkie wersje planu w jednym miejscu</span></div>
+      </div>
+    </div>
+
+    <!-- wyjście -->
+    <div class="box dashed">
+      <i class="h-arrow from-core" aria-hidden="true"></i>
+      <div class="box-label">Wyjście · dowolny format</div>
+      <div class="item"><b>CSV</b></div>
+      <div class="item"><b>PDF</b></div>
+      <div class="item"><b>iCal</b></div>
+      <div class="item"><b>API</b></div>
+      <div class="item ghost"><b>+ dowolny format …</b></div>
+    </div>
+
+  </div>
+</main>
+</body>
+</html>
