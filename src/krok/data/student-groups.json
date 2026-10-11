@@ -1,0 +1,89 @@
+[
+  {
+    "name": "IT Inżynier 2-rok",
+    "courses": [
+      {
+        "name": "Inżynieria Internetowa - lab",
+        "hoursWeekly": 2,
+        "profession": "IT",
+        "domain": "IT"
+      },
+      {
+        "name": "Inżynieria Internetowa - wykład",
+        "hoursWeekly": 2,
+        "profession": "Lecture",
+        "domain": "IT"
+      },
+      {
+        "name": "Elektrotechnika podstawy - lab",
+        "hoursWeekly": 1,
+        "profession": "Electronics",
+        "domain": "Electronics"
+      },
+      {
+        "name": "Elektrotechnika podstawy - wykład",
+        "hoursWeekly": 1,
+        "profession": "Lecture",
+        "domain": "Electronics"
+      }
+    ]
+  },
+  {
+    "name": "IT magister - 1 rok",
+    "courses": [
+      {
+        "name": "Inżynieria Oprogramowania - lab",
+        "hoursWeekly": 2,
+        "profession": "IT",
+        "domain": "IT"
+      },
+      {
+        "name": "Inżynieria Oprogramowania - wykład",
+        "hoursWeekly": 1,
+        "profession": "Lecture",
+        "domain": "IT"
+      },
+      {
+        "name": "Dane przestrzenne - lab",
+        "hoursWeekly": 1,
+        "profession": "IT",
+        "domain": "IT"
+      },
+      {
+        "name": "Dane przestrzenne - wykład",
+        "hoursWeekly": 1,
+        "profession": "Lecture",
+        "domain": "IT"
+      }
+    ]
+  },
+  {
+    "name": "Elektrotechnika - 3 rok",
+    "courses": [
+      {
+        "name": "Zaawansowana budowa obwodów - lab",
+        "hoursWeekly": 2,
+        "profession": "Electronics",
+        "domain": "Electronics"
+      },
+      {
+        "name": "Zaawansowana budowa obwodów - wykład",
+        "hoursWeekly": 1,
+        "profession": "Lecture",
+        "domain": "Electronics"
+      },
+      {
+        "name": "Zaawansowana kontrola napięc - lab",
+        "hoursWeekly": 2,
+        "profession": "Electronics",
+        "domain": "Electronics"
+      },
+      {
+        "name": "Zaawansowana kontrola napięc - wykład",
+        "hoursWeekly": 2,
+        "profession": "Lecture",
+        "domain": "Electronics"
+      }
+    ]
+  }
+]

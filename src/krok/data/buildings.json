@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Jedynka",
+    "rooms": [
+      {
+        "number": "112",
+        "profession": "IT"
+      },
+      {
+        "number": "113",
+        "profession": "Electronics"
+      },
+      {
+        "number": "214",
+        "profession": "IT"
+      },
+      {
+        "number": "215",
+        "profession": "Electronics"
+      },
+      {
+        "number": "124",
+        "profession": "Lecture"
+      },
+      {
+        "number": "224",
+        "profession": "Lecture"
+      }
+    ]
+  },
+  {
+    "name": "Dwójka",
+    "rooms": [
+      {
+        "number": "114",
+        "profession": "IT"
+      },
+      {
+        "number": "117",
+        "profession": "IT"
+      },
+      {
+        "number": "212",
+        "profession": "Electronics"
+      },
+      {
+        "number": "224",
+        "profession": "Electronics"
+      },
+      {
+        "number": "122",
+        "profession": "Lecture"
+      },
+      {
+        "number": "230",
+        "profession": "Lecture"
+      }
+    ]
+  },
+  {
+    "name": "Trójka",
+    "rooms": [
+      {
+        "number": "108",
+        "profession": "Lecture"
+      },
+      {
+        "number": "113",
+        "profession": "IT"
+      },
+      {
+        "number": "212",
+        "profession": "Electronics"
+      },
+      {
+        "number": "224",
+        "profession": "Electronics"
+      },
+      {
+        "number": "312",
+        "profession": "Electronics"
+      },
+      {
+        "number": "112",
+        "profession": "IT"
+      }
+    ]
+  }
+]
