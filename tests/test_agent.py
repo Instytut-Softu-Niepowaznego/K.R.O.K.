@@ -96,7 +96,7 @@ def test_failed_finish_tool_does_not_finish(llm, saved_plan):
 def test_raises_when_nudges_run_out(llm):
   client = llm(*[text("nie umiem")] * 3)
 
-  with pytest.raises(RuntimeError, match="save_plan"):
+  with pytest.raises(RuntimeError, match="save_plan.*nie umiem"):
     run_agent("sys", "zadanie", finish_tool="save_plan", max_nudges=2)
   assert client.calls == 3
 
