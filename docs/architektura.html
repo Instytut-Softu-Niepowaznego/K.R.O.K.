@@ -213,6 +213,12 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
     row-gap: 32px;
   }
   .h-arrow, .loop::before, .loop-tip { display: none; }
+  /* zamiast poziomych strzałek: opis przepływu nad blokiem */
+  .a-perc, .a-core { position: relative; }
+  .a-perc::before, .a-core::before, .a-out::before { position: absolute; left: 0; top: -26px; font: 400 12px/1.3 var(--f-mono); color: var(--muted); }
+  .a-perc::before { content: "↓ ze źródeł danych i zdarzeń"; }
+  .a-core::before { content: "↓ polecenia i zasady"; }
+  .a-out::before { content: "↓ plan, raport, widoki, terminarz"; }
   .back > div { min-height: 36px; }
   .back span { max-width: none; }
   .back span::after { content: " → nowe zdarzenia"; }
@@ -297,7 +303,7 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
       <div class="box rules">
         <div class="box-label"><span class="nr">1</span>Zasady</div>
         <div class="item"><b>config.json</b><span>godziny, przerwy, reguły twarde i miękkie, wagi</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
-        <div class="item"><b>calendar.json</b><span>semestr, zjazdy, dni wolne, rektorskie, blokady</span></div>
+        <div class="item"><b>calendar.json</b><span>semestr, zjazdy, dni wolne, rektorskie, blokady</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
       </div>
     </div>
 
