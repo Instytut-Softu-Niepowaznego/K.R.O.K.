@@ -77,7 +77,12 @@ Korzyści:
 Koszty i ryzyka:
 
 - **Rozmiar modelu.** Dowolne starty i krok 5 minut dają dużo możliwych wartości. Możliwe środki zaradcze: `allowedStartTimes`, większy krok, limit czasu, podział na podproblemy.
-- **Limit czasu ogranicza gwarancje.** Solver może zwrócić plan poprawny, ale bez dowodu optymalności, albo nie rozstrzygnąć niczego. Dowód braku planu jest tylko wtedy, gdy solver zakończy z takim wynikiem. Harness musi rozróżniać te trzy przypadki.
+- **Limit czasu ogranicza gwarancje.** Po jego upływie solver może zwrócić plan bez dowodu optymalności albo nie rozstrzygnąć niczego. Harness musi przypisać każdy status CP-SAT do jednego wyniku:
+  - `OPTIMAL`: plan z dowodem optymalności.
+  - `FEASIBLE`: plan bez dowodu optymalności.
+  - `INFEASIBLE`: dowód braku planu. To jedyny status, który go daje.
+  - `UNKNOWN`: brak rozstrzygnięcia, ani planu, ani dowodu jego braku.
+  - `MODEL_INVALID`: błąd modelu lub narzędzia, a nie wynik planowania.
 - **Czas trwania zależny od startu.** `breaks.overrides` zmieniają przerwę wewnętrzną w danych godzinach, więc długość przedziału zależy od godziny startu. To komplikuje model.
 - **Czas przejścia zależny od sal.** Przerwa przy zmianie budynku zależy od wybranych sal, więc stałe wydłużenie przedziału tu nie wystarcza i potrzebne są dodatkowe ograniczenia.
 - **Sprzeczne zasady.** Sam wynik „brak planu” nie wyjaśnia przyczyny. Wskazanie sprzecznych ograniczeń to osobna praca w #17.
@@ -87,7 +92,7 @@ Koszty i ryzyka:
 
 ## Miejsce w architekturze
 
-Solver to karta 09 wśród narzędzi harnessu w [diagramie architektury](../architektura.html). Przepływ:
+Solver jest jednym z narzędzi harnessu. W [diagramie architektury](../architektura.html) odpowiada mu karta 09, którą dodaje PR #23. Przepływ:
 
 1. Model główny wywołuje `solve_plan`.
 2. Solver czyta dane z bazy oraz zasady z `config.json` i `calendar.json`.
