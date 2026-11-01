@@ -72,12 +72,12 @@ def test_building_switch_during_day_is_only_a_warning(valid_plan):
   assert "Anna w Pon: 1 zmian(y) budynku" in warnings
 
 
-def test_building_switch_is_counted_in_hour_order(valid_plan):
-  # Lekcje podane od końca dnia: A(9), B(8) to nadal jedna zmiana budynku.
-  reversed_plan = [
+def test_building_switch_is_counted_in_hour_order():
+  # W kolejności podania A, B, A to 2 zmiany; po godzinach A, A, B to tylko 1.
+  shuffled_plan = [
+    lesson(hour=8),
+    lesson(hour=10, group="G2", course="Sieci", building="B", room="3"),
     lesson(hour=9, course="Wykład", room="2"),
-    lesson(building="B", room="3"),
-    valid_plan[2],
   ]
-  _, warnings = validate(reversed_plan)
+  _, warnings = validate(shuffled_plan)
   assert "Anna w Pon: 1 zmian(y) budynku" in warnings
