@@ -18,6 +18,7 @@ Modelujemy jeden wydział: Wydział Informatyki (WJ) Politechniki Opolskiej, bud
 - Każda encja ma stabilne `id` (string). Odwołania tylko przez `id`.
 - Długość zajęć podawana w **jednostkach** (45 min). Godziny startu i przerwy są w formacie `HH:MM` i w minutach.
 - Wszystkie reguły, które mogą się zmienić (godziny, przerwy, dni, prędkość przejścia), siedzą w konfiguracji, nie w kodzie.
+- Obecny kod (`src/krok/harness/plan.py`, `validate_plan`) i dane w `src/krok/data/` używają starego modelu i nie realizują tej specyfikacji, np. nie sprawdzają kolizji w hierarchii grup. Ta specyfikacja obowiązuje dla nowego kodu.
 
 ## Zasady układania
 
@@ -38,7 +39,7 @@ Do zasad należą godziny i przerwy (`timeGrid`) oraz lista reguł w `config.jso
 - `kind`: `hard` = plan nie może jej złamać, `soft` = system minimalizuje naruszenia zgodnie z wagą `weight`.
 - Włączenie, wyłączenie, zmiana parametrów i wagi nie wymagają zmian w kodzie. Nowy rodzaj reguły wymaga dopisania jego obsługi.
 - Reguły w przykładzie są orientacyjne. Docelową listę ustala #3.
-- Każdy plan zapisuje zasady, z którymi powstał, żeby dało się porównywać wersje.
+- Każdy plan zapisuje kopię zasad, z którymi powstał (`rulesSnapshot`), żeby dało się porównywać wersje i odczytać stary plan po zmianie konfiguracji.
 
 ## Czas
 
@@ -109,7 +110,7 @@ Tygodniowy plan jest rdzeniem. Kalendarz nakłada go na konkretne daty semestru 
         "scope": { "facultyIds": ["WJ"] }, "label": "Godziny rektorskie (święto wydziału)" },
       { "id": "odpracowanie",          "type": "dayOverride", "date": "2026-12-15", "followsDay": "Pt", "followsParity": "B",
         "label": "Wtorek z zajęciami jak w piątek B" },
-      { "id": "remont-c16",            "type": "resourceBlock", "from": "2026-11-02", "to": "2026-11-13",
+      { "id": "remont-p1-101",         "type": "resourceBlock", "from": "2026-11-02", "to": "2026-11-13",
         "scope": { "roomIds": ["P1/101"] }, "label": "Remont sali" }
     ]
   }
@@ -130,6 +131,14 @@ Typy wyjątków:
 - `weekParityOverrides`: ręczne ustawienie parzystości tygodnia albo `null`, żeby tydzień nie liczył się do naprzemienności A/B.
 - `holiday` i `rector` nie zmieniają tygodniowego planu. Wpływają na wyliczenie konkretnych terminów i na raport: ile spotkań każde zajęcia faktycznie mają w semestrze i czy któremuś brakuje.
 - `resourceBlock` krótszy niż cały semestr też nie zmienia tygodniowego planu. Raport wskazuje spotkania, które trzeba przenieść (zastępstwo lub zmiana sali). Blokada na cały semestr działa jak brak dostępności i trafia do solvera.
+
+Gdy wyjątki się nakładają, kolejność rozstrzygania dla każdej daty jest stała:
+
+1. `dayOverride` określa, z którego dnia brać plan i opcjonalnie którą parzystość zastosować. Dwa takie wpisy na tę samą datę to błąd danych wejściowych.
+2. Do każdego spotkania zbieramy wszystkie wyjątki, które obejmują je zakresem i czasem.
+3. Status spotkania: `holiday` lub `rector` → `cancelled`, w przeciwnym razie `resourceBlock` → `needsMove`, w przeciwnym razie `held`.
+
+Odpracowanie w dniu wolnym nie przywraca więc zajęć: spotkania są odwołane, a raport pokazuje to jako ostrzeżenie.
 
 ## Struktura studentów
 
@@ -227,8 +236,9 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 ```
 
 - `form`: `W` | `C` | `L` | `P`.
-- `unitsPerWeek` / `unitsPerMeeting` = liczba spotkań w tygodniu. Przykład: 4 / 2 = dwa spotkania po 1 h 40 min.
+- `unitsPerWeek` / `unitsPerMeeting` = liczba spotkań w tygodniu. Przykład: 4 / 2 = dwa spotkania po 1 h 40 min. Obie wartości to liczby całkowite ≥ 1, a `unitsPerWeek` musi być podzielne przez `unitsPerMeeting`. Inaczej to błąd danych wejściowych.
 - `lecturerId`: `null` = solver dobiera prowadzącego z kompetencją `subject.competence`. Podane `id` = przydział na sztywno.
+- Sala musi mieć `type` równy `roomType` i `capacity` ≥ `size` grupy. To twarde ograniczenie. Jeśli żadna sala go nie spełnia, solver nie przydziela zajęć, a raport zgłasza naruszenie z `classIds` tych zajęć.
 
 ## Wejścia (podsumowanie)
 
@@ -263,8 +273,11 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
 
 ```json
 {
+  "planId": "plan-2026-11-01-01",
+  "rulesSnapshot": { "timeGrid": { "...": "..." }, "rules": [], "walkingSpeedKmh": 5 },
   "assignments": [
     {
+      "id": "BD-L-WJ-INF-inz-s3-L1#1",
       "classId": "BD-L-WJ-INF-inz-s3-L1",
       "groupId": "WJ-INF-inz-s3-L1",
       "lecturerId": "P-0042",
@@ -278,11 +291,25 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
 }
 ```
 
-Koniec zajęć jest wyliczany z `start`, `units` i reguł przerw, nie jest przechowywany.
+- `id` przydziału = `classId` + `#` + numer spotkania w tygodniu, więc nie zmienia się po ponownym ułożeniu planu.
+- `rulesSnapshot` to pełna kopia `timeGrid`, `rules` i `walkingSpeedKmh` z chwili układania, czyli wszystkiego, od czego zależą godziny i czasy przejść.
+- Koniec zajęć jest wyliczany z `start`, `units` i przerw z `rulesSnapshot`, nie jest przechowywany.
 
 ### Raport
 
-Wartości metryk z #3 (twarde naruszenia, okienka, przejścia, obciążenie sal itd.) plus lista naruszeń z odwołaniem do `assignments`.
+Wartości metryk z #3 (twarde naruszenia, okienka, przejścia, obciążenie sal itd.) plus lista naruszeń:
+
+```json
+{
+  "ruleId": "pojemnosc-sali",
+  "kind": "hard",
+  "message": "Żadna sala typu lab-it nie mieści grupy",
+  "assignmentIds": [],
+  "classIds": ["BD-L-WJ-INF-inz-s3-L1"]
+}
+```
+
+Definicje metryk i `ruleId` ustala #3.
 
 ### Widoki
 
@@ -290,4 +317,7 @@ Ten sam plan filtrowany per grupa (razem z przodkami), per prowadzący, per sala
 
 ### Terminarz
 
-Plan rozwinięty na konkretne daty po zastosowaniu kalendarza: lista `{ assignmentIndex, date, cancelledBy? }`. `cancelledBy` = `id` wyjątku, który odwołał spotkanie.
+Plan rozwinięty na konkretne daty po zastosowaniu kalendarza: lista `{ planId, assignmentId, date, status, exceptionIds }`.
+
+- `status`: `held` | `cancelled` | `needsMove`, zgodnie z kolejnością z sekcji o wyjątkach.
+- `exceptionIds`: `id` wszystkich wyjątków obejmujących spotkanie, nie tylko tego, który zdecydował o statusie.
