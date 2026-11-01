@@ -19,7 +19,7 @@ Ocena jest jakościowa, opcji nie porównywaliśmy pomiarami.
 | | Samo LLM | Sam solver | Hybryda: LLM + solver |
 |---|---|---|---|
 | Brak kolizji | tylko po sprawdzeniu kodem, przy setkach zajęć poprawki mogą nie zbiegać | gwarantowany w ramach modelu | gwarantowany w ramach modelu |
-| Dowód, że planu nie ma | nie | tak, gdy solver skończy w limicie czasu | tak, gdy solver skończy w limicie czasu |
+| Dowód, że planu nie ma | nie | tak, tylko przy statusie `INFEASIBLE` | tak, tylko przy statusie `INFEASIBLE` |
 | Polecenia w zwykłym języku | tak | nie | tak |
 | Reakcja na zmiany i kompromisy | tak, ale bez gwarancji | tylko po ręcznym przełożeniu na ograniczenia | tak, model dobiera działanie, solver liczy |
 | Tłumaczenie wyniku | tak | nie, zwraca same wartości | tak |
