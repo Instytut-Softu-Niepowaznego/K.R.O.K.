@@ -25,8 +25,10 @@ def run_agent(system: str, user_prompt: str, finish_tool: str | None = None, max
     messages.append(msg.model_dump(exclude_none=True))
 
     if not msg.tool_calls:
-      if finished or nudges >= max_nudges:
+      if finished:
         return msg.content or ""
+      if nudges >= max_nudges:
+        raise RuntimeError(f"Agent skończył bez {finish_tool} mimo {max_nudges} ponagleń")
       nudges += 1
       print(f"[{step}] model skończył bez {finish_tool}, ponaglam ({nudges}/{max_nudges})", flush=True)
       messages.append({"role": "user", "content":
