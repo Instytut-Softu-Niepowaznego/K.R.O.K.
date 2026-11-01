@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap&subset=latin-ext">
 <style>
-/* Layout: wejście → harness (model główny ⇄ model decyzyjny, pod nimi narzędzia) → wyjście; pod harnessem baza danych */
+/* Layout: źródła i zdarzenia → percepcja → baza ⇄ harness (zasady i polecenia z lewej) → wyjście; pod spodem pętla zasad */
 :root {
   --bg: #FFFFFF;
   --ink: #121417;
@@ -64,12 +64,24 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 .diagram {
   display: grid;
   grid-template-columns: 270px minmax(0, 1fr) 270px;
+  grid-template-areas:
+    "src perc evt"
+    ".   db   back"
+    "in  core out"
+    "loop loop loop";
   column-gap: var(--gap);
-  align-items: start;
+  align-items: stretch;
 }
+.a-src { grid-area: src; } .a-perc { grid-area: perc; } .a-evt { grid-area: evt; }
+.a-db { grid-area: db; } .a-back { grid-area: back; }
+.a-in { grid-area: in; } .a-core { grid-area: core; } .a-out { grid-area: out; }
+.a-loop { grid-area: loop; }
 
 /* boczne kontenery */
-.box { border: 2px solid var(--green); background: var(--green-bg); border-radius: 12px; padding: 18px 16px; display: grid; gap: 10px; position: relative; }
+.box { border: 2px solid var(--green); background: var(--green-bg); border-radius: 12px; padding: 18px 16px; display: grid; gap: 10px; align-content: start; position: relative; }
+.box.rules { border-color: var(--core-line); background: var(--core); }
+.box.rules .box-label { color: var(--core-line); }
+.stack { display: flex; flex-direction: column; justify-content: space-between; gap: 24px; }
 .box.dashed { border: 2px dashed var(--ink); background: var(--bg); }
 .box-label { padding: 2px 4px 6px; font: 600 13px/1.2 var(--f-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
 .dashed .box-label { color: var(--ink); }
@@ -91,9 +103,15 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 .to-core { left: 100%; width: calc(16px + 2px + var(--gap) - 8px); }
 /* z harnessu do kontenera wyjścia */
 .from-core { right: calc(100% + 2px + 8px); top: 140px; width: calc(var(--gap) - 8px); }
+/* ze źródeł do percepcji */
+.src-to-perc { left: calc(100% + 2px); width: calc(var(--gap) - 10px); }
+/* ze zdarzeń do percepcji, w lewo */
+.evt-to-perc { right: calc(100% + 2px); width: calc(var(--gap) - 10px); }
+.evt-to-perc::after { right: auto; left: -8px; border-left: 0; border-right: 8px solid var(--arrow); }
 
 /* harness */
-.core { border: 2px solid var(--core-line); border-radius: 12px; background: var(--core); padding: 22px 20px 24px; display: grid; gap: 22px; }
+.a-core { min-width: 0; }
+.core { height: 100%; border: 2px solid var(--core-line); border-radius: 12px; background: var(--core); padding: 22px 20px 24px; display: grid; gap: 22px; }
 .core-head { display: grid; gap: 6px; }
 .core-head h2 { margin: 0; font: 700 22px/1.2 var(--f-sans); letter-spacing: -0.01em; }
 .core-head code { font: 400 14px/1.4 var(--f-mono); color: var(--muted); }
@@ -129,22 +147,85 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 .card b { font: 600 17px/1.2 var(--f-sans); }
 .card span { font-size: 14px; line-height: 1.45; color: var(--muted); }
 
+/* percepcja nad bazą */
+.perc { border: 2px solid var(--green); background: var(--green-bg); border-radius: 12px; padding: 18px 20px 20px; display: grid; gap: 14px; align-content: center; }
+.perc .box-label { padding: 0; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; align-content: start; position: relative; min-width: 0; }
+.step b { font: 600 16px/1.25 var(--f-sans); }
+.step span { font-size: 13px; line-height: 1.35; color: var(--muted); }
+.step + .step::before { content: ""; position: absolute; left: -22px; top: 50%; width: 14px; height: 2px; background: var(--arrow); }
+.step + .step::after { content: ""; position: absolute; left: -9px; top: calc(50% - 5px); border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 7px solid var(--arrow); }
+
+/* powrót z wyjścia do zdarzeń */
+.back { display: flex; justify-content: center; }
+.back > div { display: flex; align-items: center; gap: 10px; }
+.back i { align-self: stretch; width: 2px; background: var(--arrow); position: relative; }
+.back i::before { content: ""; position: absolute; left: -5px; top: -2px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid var(--arrow); }
+.back span { font: 400 12px/1.3 var(--f-mono); color: var(--muted); max-width: 130px; }
+
+/* pętla zasad: z wyjścia, dołem, do zasad */
+.loop { --c: var(--core-line); --x: 135px; position: relative; height: 128px; }
+.loop::before { content: ""; position: absolute; left: var(--x); right: var(--x); top: 0; height: 56px; border: 2px solid var(--c); border-top: 0; border-radius: 0 0 12px 12px; }
+.loop-tip { position: absolute; left: calc(var(--x) - 5px); top: -2px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 9px solid var(--c); }
+.loop-steps { position: absolute; left: 50%; top: 56px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 0 14px; white-space: nowrap; }
+.loop-steps b { font: 600 15px/1 var(--f-sans); border: 1.5px solid var(--c); border-radius: 8px; padding: 8px 12px; background: var(--card); }
+.loop-steps i { font: 500 15px/1 var(--f-mono); font-style: normal; color: var(--c); }
+.loop p { position: absolute; left: 0; right: 0; top: 88px; margin: 0; text-align: center; font-size: 14px; color: var(--muted); }
+.loop p strong { color: var(--core-line); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: 13px; margin-right: 8px; }
+.nr { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: var(--core-line); color: var(--bg); font: 500 11px/1 var(--f-mono); vertical-align: 1px; letter-spacing: 0; }
+.formats { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 4px; }
+.formats span { font: 500 12px/1 var(--f-mono); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--card); }
+.formats span.more { color: var(--muted); border-style: dashed; background: transparent; }
+
+/* solver na całą szerokość pod narzędziami */
+.card.solver { grid-column: 1 / -1; min-height: 0; border: 2px solid var(--core-line); display: grid; grid-template-columns: 200px minmax(0, 1fr); column-gap: 16px; align-items: center; padding: 12px 14px; }
+.card.solver .n { grid-column: 1; margin: 0 0 4px; }
+.card.solver b { grid-column: 1; }
+.card.solver span:last-child { grid-column: 2; grid-row: 1 / span 2; }
+
+/* opisy komponentów */
+.legend { display: grid; gap: 24px; }
+.legend h2 { margin: 0; font: 700 28px/1.15 var(--f-sans); letter-spacing: -0.02em; }
+.legend dl { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 40px; }
+.legend dt { font: 600 16px/1.3 var(--f-sans); }
+.legend dd { margin: 4px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+.legend code { font: 400 13px/1.4 var(--f-mono); }
+
 /* baza pod harnessem */
 .under { display: grid; gap: 0; justify-items: center; }
+.under .down { margin-block: 8px; }
 .both { display: flex; align-items: center; gap: 12px; padding-block: 8px; }
 .both i { width: 2px; height: 36px; background: var(--arrow); position: relative; }
 .both i::before, .both i::after { content: ""; position: absolute; left: -5px; border-left: 6px solid transparent; border-right: 6px solid transparent; }
 .both i::before { top: -2px; border-bottom: 8px solid var(--arrow); }
 .both i::after { bottom: -2px; border-top: 8px solid var(--arrow); }
-.both span { font: 400 12px/1 var(--f-mono); color: var(--muted); }
+.both span { font: 400 12px/1.3 var(--f-mono); color: var(--muted); }
 .db { width: 100%; background: var(--card); border: 2px solid var(--ink); border-radius: 10px; padding: 16px 18px; display: grid; gap: 4px; }
 .db b { font: 700 19px/1.2 var(--f-sans); }
 .db span { font-size: 14px; color: var(--muted); }
 
 /* wąskie ekrany */
 @media (max-width: 1180px) {
-  .diagram { grid-template-columns: minmax(0, 1fr); row-gap: 32px; }
-  .h-arrow { display: none; }
+  .diagram {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "src" "evt" "perc" "db" "in" "core" "out" "back" "loop";
+    row-gap: 32px;
+  }
+  .h-arrow, .loop::before, .loop-tip { display: none; }
+  /* zamiast poziomych strzałek: opis przepływu nad blokiem */
+  .a-perc, .a-core { position: relative; }
+  .a-perc::before, .a-core::before, .a-out::before { position: absolute; left: 0; top: -26px; font: 400 12px/1.3 var(--f-mono); color: var(--muted); }
+  .a-perc::before { content: "↓ ze źródeł danych i zdarzeń"; }
+  .a-core::before { content: "↓ polecenia i zasady"; }
+  .a-out::before { content: "↓ plan, raport, widoki, terminarz"; }
+  .back > div { min-height: 36px; }
+  .back span { max-width: none; }
+  .back span::after { content: " → nowe zdarzenia"; }
+  .loop { height: auto; display: grid; gap: 12px; }
+  .loop-steps, .loop p { position: static; transform: none; }
+  .loop-steps { flex-wrap: wrap; justify-content: center; white-space: normal; padding: 0; }
+  .legend dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   body { padding-block: 48px 72px; }
@@ -154,6 +235,11 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
   .link i::before { left: -5px; top: -2px; border: 6px solid transparent; border-bottom: 8px solid var(--arrow); border-top: 0; }
   .link i::after { left: -5px; right: auto; top: auto; bottom: -2px; border: 6px solid transparent; border-top: 8px solid var(--arrow); border-bottom: 0; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .step + .step::before, .step + .step::after { display: none; }
+  .card.solver { grid-template-columns: minmax(0, 1fr); }
+  .card.solver span:last-child { grid-column: 1; grid-row: auto; }
+  .legend dl { grid-template-columns: minmax(0, 1fr); }
   .card { min-height: 0; }
 }
 </style>
@@ -163,24 +249,69 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 
   <header>
     <h1>Architektura</h1>
-    <p>Model główny planuje, model decyzyjny rozstrzyga, kod sprawdza.</p>
+    <p>Zasady to dane: modele rozumieją i rozstrzygają, solver układa, kod sprawdza.</p>
   </header>
 
   <div class="diagram">
 
-    <!-- wejście -->
-    <div class="box">
-      <div class="box-label">Wejście</div>
-      <div class="item"><b>Planista</b><span>prośba w zwykłym języku</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
-      <div class="item ghost"><span>„Ułóż plan na semestr zimowy”</span></div>
-      <div class="item ghost"><span>„Kowalski choruje do piątku”</span></div>
+    <!-- źródła danych -->
+    <div class="box a-src">
+      <i class="h-arrow src-to-perc" aria-hidden="true"></i>
+      <div class="box-label">Źródła danych</div>
+      <div class="item"><b>Budynki i sale</b><span>Wydział Informatyki, P1–P6</span></div>
+      <div class="item"><b>Generator danych</b><span>grupy, prowadzący, przedmioty, zajęcia</span></div>
+    </div>
+
+    <!-- percepcja -->
+    <section class="perc a-perc">
+      <div class="box-label">Percepcja</div>
+      <div class="steps">
+        <div class="step"><b>Import</b><span>wczytanie plików i zdarzeń</span></div>
+        <div class="step"><b>Czyszczenie</b><span>braki, błędy, duplikaty</span></div>
+        <div class="step"><b>Cechy</b><span>czasy przejść, dostępność, bilans zasobów</span></div>
+        <div class="step"><b>Stan otoczenia</b><span>czy plan da się ułożyć</span></div>
+      </div>
+    </section>
+
+    <!-- zdarzenia -->
+    <div class="box dashed a-evt">
+      <i class="h-arrow evt-to-perc" aria-hidden="true"></i>
+      <div class="box-label">Zdarzenia z otoczenia</div>
+      <div class="item ghost"><span>nieobecność prowadzącego</span></div>
+      <div class="item ghost"><span>sala wyłączona z użycia</span></div>
+      <div class="item ghost"><span>nowa liczebność grupy</span></div>
+    </div>
+
+    <!-- baza -->
+    <div class="under a-db">
+      <div class="down"><i aria-hidden="true"></i><span>dane i aktualny stan</span></div>
+      <div class="db"><b>Baza danych</b><span>wszystkie dane, stan otoczenia i wersje planu razem z zasadami, z którymi powstały</span></div>
+      <div class="both"><i aria-hidden="true"></i><span>czytają i zapisują · trwałe zmiany → ponowne planowanie · krótkie wyjątki → terminarz i raport</span></div>
+    </div>
+
+    <!-- plan wraca do otoczenia -->
+    <div class="back a-back"><div><i aria-hidden="true"></i><span>plan działa w otoczeniu, otoczenie się zmienia</span></div></div>
+
+    <!-- wejście: polecenia i zasady -->
+    <div class="stack a-in">
+      <div class="box">
+        <div class="box-label">Polecenia</div>
+        <div class="item"><b>Planista</b><span>prośba w zwykłym języku</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
+        <div class="item ghost"><span>„Ułóż plan na semestr zimowy”</span></div>
+        <div class="item ghost"><span>„Kowalski choruje do piątku”</span></div>
+      </div>
+      <div class="box rules">
+        <div class="box-label"><span class="nr">1</span>Zasady</div>
+        <div class="item"><b>config.json</b><span>godziny, przerwy, reguły twarde i miękkie, wagi</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
+        <div class="item"><b>calendar.json</b><span>semestr, zjazdy, dni wolne, rektorskie, blokady</span><i class="h-arrow to-core" aria-hidden="true"></i></div>
+      </div>
     </div>
 
     <!-- harness -->
-    <div>
+    <div class="a-core">
       <section class="core">
         <div class="core-head">
-          <h2>Harness K.R.O.K</h2>
+          <h2><span class="nr">2</span>Harness K.R.O.K</h2>
           <code>pętla agenta · walidacja · warunek końca · błędy wracają do modelu</code>
         </div>
 
@@ -207,34 +338,59 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
         <div class="tools-head"><b>Narzędzia</b><span>kilkadziesiąt, w grupach</span></div>
         <div class="cards">
           <div class="card"><span class="n">01</span><b>Dane</b><span>sale, grupy, kursy, prowadzący</span></div>
-          <div class="card"><span class="n">02</span><b>Dostępność</b><span>kiedy kto może, reguły uczelni</span></div>
-          <div class="card"><span class="n">03</span><b>Planowanie</b><span>wolne sloty, dodaj, przesuń, zamień</span></div>
-          <div class="card"><span class="n">04</span><b>Kontrola</b><span>kolizje, typy sal, liczba godzin</span></div>
-          <div class="card"><span class="n">05</span><b>Ocena</b><span>okienka, przejścia, ulubione budynki</span></div>
+          <div class="card"><span class="n">02</span><b>Dostępność</b><span>kiedy kto może, kalendarz, wyjątki</span></div>
+          <div class="card"><span class="n">03</span><b>Planowanie</b><span>wolne terminy, dodaj, przesuń, zamień</span></div>
+          <div class="card"><span class="n">04</span><b>Kontrola</b><span>kolizje, typy sal, reguły twarde</span></div>
+          <div class="card"><span class="n">05</span><b>Ocena</b><span>okienka, przejścia, reguły miękkie</span></div>
           <div class="card"><span class="n">06</span><b>Zastępstwa</b><span>nieobecność, zastępca, nowy dzień</span></div>
           <div class="card"><span class="n">07</span><b>Wersje</b><span>szkic, różnice, publikacja, cofnięcie</span></div>
           <div class="card"><span class="n">08</span><b>Eksport</b><span>plan w wybranym formacie</span></div>
+          <div class="card solver"><span class="n">09</span><b>Solver CP-SAT</b><span>Układa plan według zasad: gwarantuje reguły twarde i minimalizuje naruszenia miękkich. Zajęć bez pasującej sali nie przydziela, tylko zgłasza je w raporcie.</span></div>
         </div>
       </section>
-
-      <div class="under">
-        <div class="both"><i aria-hidden="true"></i><span>czytają i zapisują</span></div>
-        <div class="db"><b>Baza danych</b><span>wszystkie dane i wszystkie wersje planu w jednym miejscu</span></div>
-      </div>
     </div>
 
     <!-- wyjście -->
-    <div class="box dashed">
+    <div class="box dashed a-out">
       <i class="h-arrow from-core" aria-hidden="true"></i>
-      <div class="box-label">Wyjście · dowolny format</div>
-      <div class="item"><b>CSV</b></div>
-      <div class="item"><b>PDF</b></div>
-      <div class="item"><b>iCal</b></div>
-      <div class="item"><b>API</b></div>
-      <div class="item ghost"><b>+ dowolny format …</b></div>
+      <div class="box-label"><span class="nr">3</span>Wyjście · działanie</div>
+      <div class="item"><b>Plan</b><span>przydziały na powtarzalny tydzień</span></div>
+      <div class="item"><b>Raport</b><span>metryki i lista naruszeń</span></div>
+      <div class="item"><b>Widoki</b><span>grupa, prowadzący, sala</span></div>
+      <div class="item"><b>Terminarz</b><span>daty semestru, odwołane spotkania</span></div>
+      <div class="formats"><span>CSV</span><span>PDF</span><span>iCal</span><span>API</span><span class="more">+ dowolny</span></div>
+    </div>
+
+    <!-- pętla zasad -->
+    <div class="loop a-loop">
+      <i class="loop-tip" aria-hidden="true"></i>
+      <div class="loop-steps">
+        <b><span class="nr">4</span>Zmieniamy zasady</b><i aria-hidden="true">←</i>
+        <b>Coś się nie podoba lub zmienia</b><i aria-hidden="true">←</i>
+        <b>Sprawdzamy plan i raport</b>
+      </div>
+      <p><strong>Pętla zasad</strong>zasady → plan → zmiana zasad → nowy plan, bez zmian w kodzie</p>
     </div>
 
   </div>
+
+  <section class="legend">
+    <h2>Komponenty</h2>
+    <dl>
+      <div><dt>Źródła danych</dt><dd>Budynki i sale wydziału wpisujemy z rzeczywistości, resztę danych wypełnia generator. Najpierw jeden kierunek, potem cały wydział.</dd></div>
+      <div><dt>Zdarzenia z otoczenia</dt><dd>Zmiany, które pojawiają się po ułożeniu planu. Trwałe uruchamiają ponowne planowanie, a dni wolne i krótkie blokady zmieniają tylko terminarz i raport.</dd></div>
+      <div><dt>Percepcja</dt><dd>Wczytuje i czyści dane, wylicza cechy potrzebne do planowania i ustala stan otoczenia. Mówi też, czy plan w ogóle da się ułożyć.</dd></div>
+      <div><dt>Baza danych</dt><dd>Jedno miejsce na dane, stan otoczenia i wersje planu. Każda wersja ma zapisane zasady, z którymi powstała, więc wersje da się porównać.</dd></div>
+      <div><dt>Zasady</dt><dd>Godziny, przerwy, reguły, wagi i wyjątki kalendarza to dane w <code>config.json</code> i <code>calendar.json</code>. Nowy rodzaj reguły wymaga dopisania jego obsługi w kodzie.</dd></div>
+      <div><dt>Polecenia planisty</dt><dd>Prośby w zwykłym języku, np. o ułożenie planu albo uwzględnienie nieobecności. Trafiają do modelu głównego.</dd></div>
+      <div><dt>Harness</dt><dd>Prowadzi pętlę agenta, sprawdza wynik i pilnuje warunku końca. Błędy wracają do modelu, który poprawia plan.</dd></div>
+      <div><dt>Model główny</dt><dd>Rozumie prośbę, dobiera narzędzia i prowadzi pracę nad planem. Tłumaczy też wynik planiście.</dd></div>
+      <div><dt>Model decyzyjny</dt><dd>Rozstrzyga, gdy jest kilka poprawnych wariantów, i ocenia kompromisy między nimi.</dd></div>
+      <div><dt>Narzędzia</dt><dd>Kilkadziesiąt funkcji w grupach, przez które modele czytają dane i zmieniają plan. Wynik zawsze sprawdza kod, nie model.</dd></div>
+      <div><dt>Solver CP-SAT</dt><dd>Jedno z narzędzi, które liczy przydział zajęć do godzin i sal. Dostaje zasady jako ograniczenia i wagi, a kolizje liczy z nakładania się przedziałów czasu.</dd></div>
+      <div><dt>Wyjście</dt><dd>Plan, raport, widoki i terminarz w dowolnym formacie. Raport pokazuje, które zasady warto zmienić przed kolejnym układaniem.</dd></div>
+    </dl>
+  </section>
 </main>
 </body>
 </html>
