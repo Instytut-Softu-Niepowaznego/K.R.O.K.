@@ -200,7 +200,7 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 .both i::before, .both i::after { content: ""; position: absolute; left: -5px; border-left: 6px solid transparent; border-right: 6px solid transparent; }
 .both i::before { top: -2px; border-bottom: 8px solid var(--arrow); }
 .both i::after { bottom: -2px; border-top: 8px solid var(--arrow); }
-.both span { font: 400 12px/1 var(--f-mono); color: var(--muted); }
+.both span { font: 400 12px/1.3 var(--f-mono); color: var(--muted); }
 .db { width: 100%; background: var(--card); border: 2px solid var(--ink); border-radius: 10px; padding: 16px 18px; display: grid; gap: 4px; }
 .db b { font: 700 19px/1.2 var(--f-sans); }
 .db span { font-size: 14px; color: var(--muted); }
@@ -209,10 +209,13 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
 @media (max-width: 1180px) {
   .diagram {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "src" "evt" "perc" "db" "in" "core" "out" "loop";
+    grid-template-areas: "src" "evt" "perc" "db" "in" "core" "out" "back" "loop";
     row-gap: 32px;
   }
-  .h-arrow, .a-back, .loop::before, .loop-tip { display: none; }
+  .h-arrow, .loop::before, .loop-tip { display: none; }
+  .back > div { min-height: 36px; }
+  .back span { max-width: none; }
+  .back span::after { content: " → nowe zdarzenia"; }
   .loop { height: auto; display: grid; gap: 12px; }
   .loop-steps, .loop p { position: static; transform: none; }
   .loop-steps { flex-wrap: wrap; justify-content: center; white-space: normal; padding: 0; }
@@ -277,7 +280,7 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
     <div class="under a-db">
       <div class="down"><i aria-hidden="true"></i><span>dane i aktualny stan</span></div>
       <div class="db"><b>Baza danych</b><span>wszystkie dane, stan otoczenia i wersje planu razem z zasadami, z którymi powstały</span></div>
-      <div class="both"><i aria-hidden="true"></i><span>czytają i zapisują · zmiana stanu uruchamia ponowne planowanie</span></div>
+      <div class="both"><i aria-hidden="true"></i><span>czytają i zapisują · trwałe zmiany → ponowne planowanie · krótkie wyjątki → terminarz i raport</span></div>
     </div>
 
     <!-- plan wraca do otoczenia -->
@@ -336,7 +339,7 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
           <div class="card"><span class="n">06</span><b>Zastępstwa</b><span>nieobecność, zastępca, nowy dzień</span></div>
           <div class="card"><span class="n">07</span><b>Wersje</b><span>szkic, różnice, publikacja, cofnięcie</span></div>
           <div class="card"><span class="n">08</span><b>Eksport</b><span>plan w wybranym formacie</span></div>
-          <div class="card solver"><span class="n">09</span><b>Solver CP-SAT</b><span>Układa plan według zasad: gwarantuje reguły twarde, minimalizuje naruszenia miękkich albo dowodzi, że planu nie ma.</span></div>
+          <div class="card solver"><span class="n">09</span><b>Solver CP-SAT</b><span>Układa plan według zasad: gwarantuje reguły twarde i minimalizuje naruszenia miękkich. Zajęć bez pasującej sali nie przydziela, tylko zgłasza je w raporcie.</span></div>
         </div>
       </section>
     </div>
@@ -369,7 +372,7 @@ header p { margin: 0; font-size: 20px; color: var(--muted); }
     <h2>Komponenty</h2>
     <dl>
       <div><dt>Źródła danych</dt><dd>Budynki i sale wydziału wpisujemy z rzeczywistości, resztę danych wypełnia generator. Najpierw jeden kierunek, potem cały wydział.</dd></div>
-      <div><dt>Zdarzenia z otoczenia</dt><dd>Zmiany, które pojawiają się po ułożeniu planu. Aktualizują stan otoczenia i uruchamiają ponowne planowanie.</dd></div>
+      <div><dt>Zdarzenia z otoczenia</dt><dd>Zmiany, które pojawiają się po ułożeniu planu. Trwałe uruchamiają ponowne planowanie, a dni wolne i krótkie blokady zmieniają tylko terminarz i raport.</dd></div>
       <div><dt>Percepcja</dt><dd>Wczytuje i czyści dane, wylicza cechy potrzebne do planowania i ustala stan otoczenia. Mówi też, czy plan w ogóle da się ułożyć.</dd></div>
       <div><dt>Baza danych</dt><dd>Jedno miejsce na dane, stan otoczenia i wersje planu. Każda wersja ma zapisane zasady, z którymi powstała, więc wersje da się porównać.</dd></div>
       <div><dt>Zasady</dt><dd>Godziny, przerwy, reguły, wagi i wyjątki kalendarza to dane w <code>config.json</code> i <code>calendar.json</code>. Nowy rodzaj reguły wymaga dopisania jego obsługi w kodzie.</dd></div>
