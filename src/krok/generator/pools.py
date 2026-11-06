@@ -3,7 +3,8 @@
 Część przedmiotów (`lecturers.pool_share`) dostaje pule. Pula formy:
 - zawiera tylko prowadzących z kompetencją przedmiotu i niepustą dostępnością,
 - ma w każdym trybie studiów formy co najmniej jedną osobę, której spotkanie mieści się w oknie dostępności,
-- ma łączny limit ≥ zapotrzebowanie formy w gorszym tygodniu A/B × `slack` i łączną dostępność w każdym trybie ≥ czas zajęć × `slack`,
+- ma łączny limit (po rezerwacjach wcześniejszych pul) ≥ zapotrzebowanie formy w gorszym tygodniu A/B × `slack`, a w każdym trybie osobno limit
+  i dostępność osób, które zmieszczą spotkanie w tym trybie, ≥ zapotrzebowanie tego trybu × `slack` i łączną dostępność w każdym trybie ≥ czas zajęć × `slack`,
   o ile kandydatów starcza.
 Gdy tych warunków nie da się spełnić, forma zostaje bez puli (solver wybiera spośród wszystkich z kompetencją).
 """
@@ -36,10 +37,41 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
     return max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, config.time_grid)
                    for c in cs if c.parity in ("every", w)) for w in ("A", "B"))
 
+  @cache
+  def mode_units(key: tuple[str, str], mode: str) -> int:
+    return peak_units([c for c in by_form[key] if modes[c.id] == mode])
+
+  # Rezerwacje: pule dzielą ludzi, więc każda przyjęta pula zajmuje część limitu i czasu swoich członków,
+  # a kolejne pule liczą tylko na to, co zostało. Bez tego dwie pule z tymi samymi osobami mogły razem
+  # potrzebować więcej, niż te osoby mają, choć każda osobno się mieściła (wykrył to raport z #10).
+  units_left = {lec.id: float(lec.max_units_weekly) for lec in lecturers}
+  minutes_left = {(lec.id, m): float(available_minutes(lec, m, config)) for lec in lecturers
+                  for m in config.time_grid.days_by_study_mode}
+
   def enough(pool: list[Lecturer], key: tuple[str, str]) -> bool:
-    if sum(lec.max_units_weekly for lec in pool) < demand[key] * spec.slack:
+    """Łączny limit i, w każdym trybie osobno, limit i dostępność osób, które zmieszczą spotkanie w tym trybie
+    (po odjęciu rezerwacji wcześniejszych pul)."""
+    if sum(units_left[lec.id] for lec in pool) < demand[key] * spec.slack:
       return False
-    return all(sum(available_minutes(lec, m, config) for lec in pool) >= minutes(key, m) * spec.slack for m in form_modes[key])
+    for m in form_modes[key]:
+      able = [lec for lec in pool if can_teach(lec, key, m)]
+      if sum(units_left[lec.id] for lec in able) < mode_units(key, m) * spec.slack:
+        return False
+      if sum(minutes_left[(lec.id, m)] for lec in able) < minutes(key, m) * spec.slack:
+        return False
+    return True
+
+  def reserve(left: dict, keys: list, need: float) -> None:
+    """Zdejmuje `need` z zapasu `keys` proporcjonalnie do tego, ile każdy jeszcze ma."""
+    have = sum(left[k] for k in keys)
+    for k in keys:
+      left[k] -= need * left[k] / have if have else 0
+
+  def commit(pool: list[Lecturer], key: tuple[str, str]) -> None:
+    for m in form_modes[key]:
+      able = [lec for lec in pool if can_teach(lec, key, m)]
+      reserve(units_left, [lec.id for lec in able], mode_units(key, m) * spec.slack)
+      reserve(minutes_left, [(lec.id, m) for lec in able], minutes(key, m) * spec.slack)
 
   @cache
   def meeting(key: tuple[str, str], mode: str) -> int:
@@ -62,6 +94,8 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
         continue
       pool: list[Lecturer] = []
       for mode in sorted(form_modes[key]):
+        if any(can_teach(lec, key, mode) for lec in pool):
+          continue  # ktoś wybrany dla innego trybu poprowadzi też ten
         fitting = [lec for lec in candidates if can_teach(lec, key, mode) and lec not in pool]
         if not fitting:
           break  # nikt nie zmieści spotkania: forma bez puli, solver wybierze spośród wszystkich z kompetencją
@@ -72,5 +106,6 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
         while rest and not enough(pool, key):
           pool.append(rest.pop())
         if enough(pool, key):
+          commit(pool, key)
           pools[form] = sorted(lec.id for lec in pool)
     s.lecturer_pools = pools or None

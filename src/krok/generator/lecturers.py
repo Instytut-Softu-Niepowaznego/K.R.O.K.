@@ -164,7 +164,9 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
       new(comp, "part-time")
     top_up(comp, "part-time")
     # Kadra dzienna z dyżurami w weekend ma jeden limit na oba tryby, więc suma limitów musi pokryć oba naraz.
-    grow(comp, "full-time" if demand.get((comp, "full-time")) else "part-time", lambda lec: lec.max_units_weekly,
+    # Liczy się tylko ktoś, kto jest dostępny w którymś z trybów (wylosowane 0 dni nie daje użytecznego limitu).
+    grow(comp, "full-time" if demand.get((comp, "full-time")) else "part-time",
+         lambda lec: lec.max_units_weekly if any(available_minutes(lec, m, config) for m in ("full-time", "part-time")) else 0,
          (demand.get((comp, "full-time"), 0) + demand[(comp, "part-time")]) * spec.slack, "limitów jednostek")
 
   internal = [c for c in used_comps if not comps[c].external]

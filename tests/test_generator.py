@@ -170,8 +170,10 @@ def test_lecturer_pools_cover_modes_and_demand(results, name):
         assert sum(available_minutes(x, m, ds.config) for x in members) >= minutes * slack, (s.id, form, m)
         meeting = max(meeting_minutes(c.units_per_meeting, ds.config.time_grid) for c in in_mode)
         days = ds.config.time_grid.days_by_study_mode[m]
-        assert any(fits((to_minutes(a.from_), to_minutes(a.to)), meeting, ds.config.time_grid)
-                   for x in members for a in x.availability if a.day in days), (s.id, form, m)  # ktoś zmieści spotkanie
+        able = [x for x in members if any(fits((to_minutes(a.from_), to_minutes(a.to)), meeting, ds.config.time_grid)
+                                          for a in x.availability if a.day in days)]
+        assert able, (s.id, form, m)  # ktoś zmieści spotkanie
+        assert sum(x.max_units_weekly for x in able) >= expected_week_units(in_mode) * slack, (s.id, form, m)
 
 
 def test_noise_changes_only_noisy_files_and_is_logged():
@@ -219,7 +221,8 @@ def test_competence_limits_cover_peak_demand(results, name):
     cs = [c for c in ds.classes if comp[c.subject_id] == k]
     staff = [lec for lec in ds.lecturers if k in lec.competences]
     need = {m: expected_week_units([c for c in cs if gmode[c.group_id] == m]) for m in {gmode[c.group_id] for c in cs}}
-    assert sum(lec.max_units_weekly for lec in staff) >= sum(need.values()) * slack, k
+    usable = [lec for lec in staff if any(available_minutes(lec, m, ds.config) for m in ("full-time", "part-time"))]
+    assert sum(lec.max_units_weekly for lec in usable) >= sum(need.values()) * slack, k
     for m, units in need.items():
       in_mode = [lec for lec in staff if available_minutes(lec, m, ds.config)]
       assert sum(lec.max_units_weekly for lec in in_mode) >= units * slack, (k, m)
@@ -243,3 +246,52 @@ def test_impossible_lecturer_preset_is_reported():
   preset.lecturers.external_days = (0, 0)
   with pytest.raises(ValueError, match="Nie da się dobrać prowadzących"):
     generate(preset)
+
+
+def test_one_lecturer_can_cover_both_study_modes_in_pool():
+  """Jedyna osoba z kompetencją, dostępna w dni robocze i w weekend, tworzy pulę dla formy z zajęciami w obu trybach."""
+  import random
+  from krok.generator.pools import build_pools
+  from krok.model import Availability
+  preset = load_preset("kierunek")
+  preset.lecturers.pool_share = 1.0
+  ds = generate(preset).dataset
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+  subject, form = next((s, f) for s in ds.subjects for f in ("W", "C", "L", "P")
+                       if {gmode[c.group_id] for c in ds.classes if c.subject_id == s.id and c.form == f}
+                       == {"full-time", "part-time"})
+  only = ds.lecturers[0]
+  only.competences = [subject.competence]
+  only.availability = [Availability(day=d, from_="07:30", to="20:00") for d in ("Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd")]
+  only.max_units_weekly = 200
+  others = [lec.model_copy(update={"competences": [c for c in lec.competences if c != subject.competence] or ["inna"]})
+            for lec in ds.lecturers[1:]]
+  classes = [c for c in ds.classes if c.subject_id == subject.id]
+  subject.lecturer_pools = None
+  build_pools(preset, ds.config, [subject], classes, [only, *others], ds.groups, ds.programs, random.Random(1))
+  assert subject.pool(form) == [only.id]
+
+
+@pytest.mark.parametrize("name, seed", [("wydzial", 35), ("kierunek", 42), ("wydzial", 42)])
+def test_overlapping_pools_fit_members_limits_together(name, seed):
+  """Pule dzielą ludzi: suma zapotrzebowań pul jednej kompetencji i trybu mieści się w limitach ich członków.
+
+  Regresja: wydzial/35 miał pule SK i SRW z tymi samymi osobami, które razem potrzebowały 62 jednostek przy limicie 61.
+  """
+  from krok.perception import analyze
+  ds = generate(load_preset(name), seed).dataset
+  assert analyze(ds)[1].errors == 0
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+  limit = {lec.id: lec.max_units_weekly for lec in ds.lecturers}
+  by_key = defaultdict(lambda: (set(), []))
+  for s in ds.subjects:
+    for form, pool in (s.lecturer_pools or {}).items():
+      for c in ds.classes:
+        if c.subject_id == s.id and c.form == form:
+          members, classes = by_key[(s.competence, gmode[c.group_id])]
+          members.update(pool)
+          classes.append(c)
+  for key, (members, classes) in by_key.items():
+    assert sum(limit[m] for m in members) >= expected_week_units(classes), key
