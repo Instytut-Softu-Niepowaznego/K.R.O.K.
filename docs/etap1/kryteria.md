@@ -26,7 +26,7 @@ Plan z choćby jednym naruszeniem jest niepoprawny. Wartość reguły to liczba 
 
 | `id` | Kryterium | Jak mierzymy (jedno naruszenie to…) | `params` |
 |---|---|---|---|
-| `spojnosc-planu` | Przydział odwołuje się do istniejących danych i zgadza się z zajęciami | przydział z nieistniejącym `classId`, `groupId`, `lecturerId` lub `roomId` albo z `groupId`, `units`, `parity` innymi niż w zajęciach | — |
+| `spojnosc-planu` | Przydział odwołuje się do istniejących danych i zgadza się z zajęciami | przydział z nieistniejącym `classId`, `groupId`, `lecturerId` lub `roomId`; przydział z `groupId`, `units`, `parity` innymi niż w zajęciach; przydział z `lecturerId` innym niż `lecturerId` zajęć, gdy zajęcia mają go podanego; zajęcia, których spotkania mają różnych prowadzących | — |
 | `kolizja-grup` | Grupa nie ma dwóch zajęć naraz, z hierarchią z #1 | para spotkań, które nakładają się w czasie, w tym samym dniu, w zgodnej parzystości, dla tej samej grupy albo grup w relacji przodek–potomek | — |
 | `kolizja-prowadzacych` | Prowadzący nie ma dwóch zajęć naraz | para nakładających się spotkań tego samego prowadzącego | — |
 | `kolizja-sal` | Sala nie ma dwóch zajęć naraz | para nakładających się spotkań w tej samej sali | — |
@@ -38,9 +38,11 @@ Plan z choćby jednym naruszeniem jest niepoprawny. Wartość reguły to liczba 
 | `dostepnosc-prowadzacego` | Prowadzący uczy tylko w godzinach dostępności | spotkanie, które nie mieści się w całości w jednym zakresie `availability` prowadzącego w tym dniu | — |
 | `blokady-zasobow` | Zajęcia omijają blokady na cały semestr | spotkanie w sali, z prowadzącym lub grupą objętą `resourceBlock` trwającym cały semestr | — |
 | `limit-godzin-prowadzacego` | Prowadzący nie przekracza limitu | prowadzący, którego suma `units` w tygodniu A lub B przekracza `maxUnitsWeekly` | — |
-| `komplet-godzin` | Każde zajęcia mają wszystkie spotkania | brakujące spotkanie: zajęcia mają mniej przydziałów niż `unitsPerWeek / unitsPerMeeting` | — |
+| `komplet-godzin` | Każde zajęcia mają dokładnie tyle spotkań, ile wymagają | brakujące spotkanie (zajęcia mają mniej przydziałów niż `unitsPerWeek / unitsPerMeeting`) albo nadmiarowe spotkanie (więcej przydziałów niż ta liczba) | — |
 | `godziny-dnia` | Zajęcia w dozwolonych dniach i godzinach | spotkanie w dniu spoza `daysByStudyMode` trybu, przed `dayStart`, po `dayEnd` albo ze startem niezgodnym z `startStepMinutes` lub `allowedStartTimes` | z `timeGrid` |
 | `max-jednostek-dziennie` | Student nie ma za dużo zajęć jednego dnia | plan studenta w dniu z sumą `units` > `maxUnits` | `maxUnits: 10` |
+
+Jedne zajęcia to jedna forma przedmiotu dla jednej grupy (model domeny), więc ćwiczenia z tego samego przedmiotu dla kilku grup to osobne zajęcia. Każde mogą mieć innego prowadzącego, ale wszystkie spotkania jednych zajęć prowadzi ta sama osoba.
 
 Kolizje (`kolizja-*`) liczymy z nakładania się przedziałów czasu, tak jak solver ([decyzja 001](../decyzje/001-solver.md)). Spotkania `A` i `B` nie kolidują ze sobą, a `every` koliduje z oboma.
 
@@ -160,11 +162,11 @@ Punktem wyjścia jest obecny `validate` w `src/krok/harness/plan.py` (narzędzie
 
 | Reguła | Obecny `validate` | Brakuje |
 |---|---|---|
-| `spojnosc-planu` | sprawdza istnienie kursu, sali, prowadzącego | `id` zamiast nazw, zgodność `units` i `parity` |
+| `spojnosc-planu` | sprawdza istnienie kursu, sali, prowadzącego | `id` zamiast nazw, zgodność `units`, `parity` i prowadzącego z zajęciami |
 | `kolizja-grup`, `kolizja-prowadzacych`, `kolizja-sal` | ta sama godzina i ta sama nazwa | przedziały czasu, hierarchia grup, parzystość |
 | `typ-sali` | jest | — |
 | `kompetencja-prowadzacego` | jest | — |
-| `komplet-godzin` | liczy godziny | liczenie spotkań po `unitsPerMeeting` |
+| `komplet-godzin` | porównuje godziny (brak i nadmiar) | liczenie spotkań po `unitsPerMeeting` |
 | `budynek-macierzysty` | ostrzeżenie | wartość liczbowa |
 | `przejscia-miedzy-budynkami` | ostrzeżenie dla prowadzącego | plany studentów, wartość liczbowa |
 | pozostałe | brak | całe |
