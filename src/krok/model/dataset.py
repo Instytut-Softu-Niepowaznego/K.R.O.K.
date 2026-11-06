@@ -64,16 +64,46 @@ def save_dataset(ds: Dataset, out_dir: Path) -> None:
     (out_dir / name).write_text(dump_json(data), encoding="utf-8")
 
 
+class DatasetError(ValueError):
+  """Pliku danych nie ma, nie da się go odczytać (uprawnienia, katalog, kodowanie, zły JSON) albo ma zły kształt.
+
+  Problemy z treścią rekordów zgłasza dalej walidacja modelu (pydantic.ValidationError).
+  """
+
+
+def read_json_file(path: Path) -> object:
+  """Czyta plik JSON. Każdy błąd odczytu zamienia na DatasetError z nazwą pliku."""
+  try:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+  except FileNotFoundError as e:
+    raise DatasetError(f"brak pliku {path}") from e
+  except UnicodeDecodeError as e:
+    raise DatasetError(f"{path}: plik nie jest w UTF-8 ({e.reason})") from e
+  except json.JSONDecodeError as e:
+    raise DatasetError(f"{path}: niepoprawny JSON ({e.msg}, linia {e.lineno})") from e
+  except OSError as e:  # katalog zamiast pliku, brak uprawnień
+    raise DatasetError(f"{path}: nie można odczytać ({e.strerror or e})") from e
+
+
 def read_files(src_dir: Path) -> dict[str, object]:
-  return {name: json.loads((src_dir / name).read_text(encoding="utf-8")) for name in FILES}
+  return {name: read_json_file(Path(src_dir) / name) for name in FILES}
+
+
+def _expect(name: str, value, kind: type, what: str):
+  if not isinstance(value, kind):
+    raise DatasetError(f"{name}: oczekiwano {what}, a jest {type(value).__name__}")
+  return value
 
 
 def dataset_from_files(files: dict[str, object]) -> Dataset:
+  """Składa Dataset z plików. Zły kształt pliku → DatasetError, złe rekordy → ValidationError."""
+  calendar = _expect("calendar.json", files["calendar.json"], dict, 'obiektu {"calendar": {...}}')
+  faculties = _expect("faculties.json", files["faculties.json"], dict, "obiektu {faculties, fields, programs}")
   data = {
-    "config": files["config.json"],
-    "calendar": files["calendar.json"]["calendar"],
-    **files["faculties.json"],
-    **{key: files[name] for key, name in LIST_FILES.items()},
+    "config": _expect("config.json", files["config.json"], dict, "obiektu"),
+    "calendar": _expect("calendar.json", calendar.get("calendar"), dict, 'obiektu w polu "calendar"'),
+    **{key: _expect(f"faculties.json/{key}", faculties.get(key), list, "listy") for key in ("faculties", "fields", "programs")},
+    **{key: _expect(name, files[name], list, "listy rekordów") for key, name in LIST_FILES.items()},
   }
   return Dataset.model_validate(data)
 

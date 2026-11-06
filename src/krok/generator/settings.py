@@ -5,7 +5,7 @@ import tomllib
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from krok.model import Degree, Form, StudyMode
 
@@ -134,10 +134,13 @@ class NoiseSpec(Strict):
   duplicate_rate: float = 0.01
 
 
+MAX_EVENTS_PER_WEEK = 10_000  # górna granica: przy nieskończonej intensywności generator nigdy by nie skończył
+
+
 class EventSpec(Strict):
   """Strumień zdarzeń z otoczenia (#8)."""
 
-  per_week: float = Field(default=4.0, gt=0)  # średnia liczba zdarzeń na tydzień (proces Poissona)
+  per_week: float = Field(default=4.0, gt=0, le=MAX_EVENTS_PER_WEEK)  # średnia liczba zdarzeń na tydzień (Poisson)
   weights: dict[str, float] = {
     "roomUnavailable": 3, "lecturerAbsent": 4, "lecturerAvailabilityChanged": 2, "groupSizeChanged": 3,
     "groupAdded": 1, "subjectAdded": 1, "calendarExceptionAdded": 1,
@@ -164,7 +167,7 @@ class Preset(Strict):
   faculty_name: str = "Wydział Informatyki"
   base_data: str = "wj"
   catalog: str = "katalog-wj.toml"
-  fields: list[FieldSpec]
+  fields: list[FieldSpec] = Field(min_length=1)
   groups: GroupSizes = GroupSizes()
   part_time_units_factor: float = Field(default=0.6, gt=0, le=1)
   ab_share: float = Field(default=0.15, ge=0, le=1)  # część laboratoriów co 2 tygodnie (A/B)
@@ -185,24 +188,54 @@ def _merge(base: dict, over: dict) -> dict:
   return out
 
 
-def _read_preset(ref: str) -> dict:
+class PresetError(ValueError):
+  """Preset albo katalog nie istnieje, nie da się go odczytać albo ma błędną treść. Komunikat jest gotowy dla CLI."""
+
+
+def _read_toml(path: Path) -> dict:
+  try:
+    return tomllib.loads(path.read_text(encoding="utf-8"))
+  except UnicodeDecodeError as e:
+    raise PresetError(f"{path}: plik nie jest w UTF-8") from e
+  except tomllib.TOMLDecodeError as e:
+    raise PresetError(f"{path}: niepoprawny TOML ({e})") from e
+  except OSError as e:
+    raise PresetError(f"{path}: nie można odczytać ({e.strerror or e})") from e
+
+
+def _read_preset(ref: str, seen: tuple[str, ...] = ()) -> dict:
   path = Path(ref) if ref.endswith(".toml") else PRESETS_DIR / f"{ref}.toml"
   if not path.exists():
-    known = sorted(p.stem for p in PRESETS_DIR.glob("*.toml") if not p.stem.startswith("katalog"))
-    raise FileNotFoundError(f"Nie ma presetu {ref}. Dostępne: {', '.join(known)}")
-  data = tomllib.loads(path.read_text(encoding="utf-8"))
+    raise PresetError(f"Nie ma presetu {ref}. Dostępne: {', '.join(list_presets())}")
+  if ref in seen:
+    raise PresetError(f"Cykl w extends: {' -> '.join((*seen, ref))}")
+  data = _read_toml(path)
   parent = data.pop("extends", None)
-  return _merge(_read_preset(parent), data) if parent else data
+  if parent is not None and not isinstance(parent, str):
+    raise PresetError(f"{path}: extends musi być nazwą presetu")
+  return _merge(_read_preset(parent, (*seen, ref)), data) if parent else data
+
+
+def _validated(model, data: dict, what: str):
+  try:
+    return model.model_validate(data)
+  except ValidationError as e:
+    first = e.errors()[0]
+    where = ".".join(str(p) for p in first["loc"]) or "(całość)"
+    raise PresetError(f"{what}: {e.error_count()} błędów, np. {where}: {first['msg']}") from e
 
 
 def load_preset(ref: str) -> Preset:
-  """Nazwa presetu z presets/ albo ścieżka do pliku .toml. `extends = "mini"` dziedziczy i nadpisuje pola."""
-  return Preset.model_validate(_read_preset(ref))
+  """Nazwa presetu z presets/ albo ścieżka do pliku .toml. `extends = "mini"` dziedziczy i nadpisuje pola.
+  Każdy problem (brak pliku, zły TOML, zła treść, cykl w extends) → PresetError z czytelnym komunikatem."""
+  return _validated(Preset, _read_preset(ref), f"preset {ref}")
 
 
 def load_catalog(name: str) -> Catalog:
   path = Path(name) if Path(name).exists() else PRESETS_DIR / name
-  return Catalog.model_validate(tomllib.loads(path.read_text(encoding="utf-8")))
+  if not path.exists():
+    raise PresetError(f"Nie ma katalogu przedmiotów {name}")
+  return _validated(Catalog, _read_toml(path), f"katalog {name}")
 
 
 def list_presets() -> list[str]:

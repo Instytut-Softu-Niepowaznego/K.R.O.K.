@@ -4,13 +4,15 @@ import argparse
 import sys
 from pathlib import Path
 
-from krok.console import safe_output
+from krok.console import closed_pipe_safe, describe, safe_output
 
 from .core import generate, summary, write
-from .settings import list_presets, load_preset
+from .settings import PresetError, list_presets, load_preset
 
 
+@closed_pipe_safe
 def main(argv: list[str] | None = None) -> int:
+  """Punkt wejścia `krok-gen`; zwraca 0, a 2 przy złym presecie, złych danych bazowych albo błędzie zapisu."""
   safe_output()
   p = argparse.ArgumentParser(prog="krok-gen", description="Generator danych wydziału (K.R.O.K. #7)")
   p.add_argument("--preset", default="mini", help="nazwa presetu albo ścieżka do pliku .toml (domyślnie: mini)")
@@ -31,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
 
   try:
     preset = load_preset(args.preset)
-  except FileNotFoundError as e:
+  except PresetError as e:
     print(e, file=sys.stderr)
     return 2
   if args.edge_cases is not None:
@@ -39,9 +41,17 @@ def main(argv: list[str] | None = None) -> int:
   if args.noise is not None:
     preset.noise.enabled = args.noise
 
-  result = generate(preset, args.seed, buildings_path=args.buildings, rooms_path=args.rooms)
+  try:
+    result = generate(preset, args.seed, buildings_path=args.buildings, rooms_path=args.rooms)
+  except ValueError as e:  # DatasetError, PresetError (katalog), ValidationError danych bazowych, sprzeczny preset
+    print(f"Nie można wygenerować danych: {describe(e)}", file=sys.stderr)
+    return 2
   out = args.out or Path("data/generated") / preset.name
-  write(result, out)
+  try:
+    write(result, out)
+  except OSError as e:  # --out wskazuje plik albo katalog bez prawa zapisu
+    print(f"Nie można zapisać wyników do {out}: {e.strerror or e}", file=sys.stderr)
+    return 2
 
   if not args.quiet:
     print(f"Preset {preset.name}, seed {result.meta['seed']} → {out}/")

@@ -12,6 +12,7 @@ Odwołań do danych (czy sala istnieje) ani duplikatów i kolejności nie sprawd
 
 import datetime as dt
 import json
+import math
 import time
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
@@ -77,6 +78,8 @@ def replay(source: str | Path | Iterable[str], speed: float | None = None, *, st
   start / until: pomija zdarzenia z czasem przed `start` albo po `until`. Linie bez czytelnego czasu zawsze przechodzą.
   Czasy w strumieniu są lokalne, bez strefy, więc `start` i `until` też muszą być bez strefy.
   """
+  if speed is not None and (math.isnan(speed) or speed < 0):
+    raise ValueError(f"speed musi być ≥ 0 (0 albo inf = bez czekania), a jest {speed}")
   for name, bound in (("start", start), ("until", until)):
     if bound is not None and bound.tzinfo is not None:
       raise ValueError(f"{name} musi być czasem bez strefy, tak jak timestamp w strumieniu")

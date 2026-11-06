@@ -2,15 +2,17 @@
    uv run krok-events replay data/generated/kierunek/events.jsonl --speed 86400"""
 
 import argparse
-import json
+import math
 import sys
 from pathlib import Path
 
 from pydantic import ValidationError
 
-from krok.console import output_closed, safe_output
-from krok.generator import generate, load_preset, write
-from krok.model import dump_json, load_dataset, reference_errors
+from krok.console import closed_pipe_safe, describe, output_closed, safe_output, write_outputs
+from krok.generator import PresetError, generate, load_preset, write
+from krok.generator.settings import MAX_EVENTS_PER_WEEK
+from krok.model import DatasetError, dump_json, load_dataset, reference_errors
+from krok.model.dataset import read_json_file
 
 from .generate import generate_events
 from .stream import replay
@@ -22,15 +24,25 @@ MANIFEST_FILE = "_events.json"
 def _generate(args) -> int:
   """Komenda `generate`: dane (z --data albo z presetu) + events.jsonl i _events.json."""
   meta_path = args.data / "_meta.json" if args.data else None
-  meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path and meta_path.exists() else {}
+  meta = {}
+  if meta_path and meta_path.exists():
+    try:
+      meta = read_json_file(meta_path)
+    except DatasetError as e:
+      print(e, file=sys.stderr)
+      return 2
+    if not isinstance(meta, dict) or not isinstance(meta.get("preset", ""), str) or not isinstance(meta.get("seed", 0), int):
+      print(f"{meta_path}: oczekiwano obiektu z polami preset (tekst) i seed (liczba całkowita)", file=sys.stderr)
+      return 2
   try:
     preset = load_preset(args.preset or meta.get("preset", "kierunek"))  # ten sam preset, z którego powstały dane
-  except FileNotFoundError as e:
+  except PresetError as e:
     print(e, file=sys.stderr)
     return 2
   if args.per_week is not None:
-    if args.per_week <= 0:
-      print("--per-week musi być większe od 0", file=sys.stderr)
+    # nan, inf i ogromne wartości: przy nieskończonej intensywności generator nigdy by nie skończył
+    if not (math.isfinite(args.per_week) and 0 < args.per_week <= MAX_EVENTS_PER_WEEK):
+      print(f"--per-week musi być liczbą z zakresu (0, {MAX_EVENTS_PER_WEEK}]", file=sys.stderr)
       return 2
     preset.events.per_week = args.per_week
   if args.error_rate is not None:
@@ -49,7 +61,7 @@ def _generate(args) -> int:
       print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów), np. dane z szumem. "
             "Zdarzenia generuj z czystych danych (ten sam preset i seed bez --noise).", file=sys.stderr)
       return 2
-    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError) as e:
+    except DatasetError as e:  # brak pliku, katalog, uprawnienia, kodowanie, zły JSON albo zły kształt pliku
       print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
       return 2
     broken = reference_errors(ds)
@@ -60,15 +72,29 @@ def _generate(args) -> int:
     seed = args.seed if args.seed is not None else meta.get("seed", preset.seed)
     out = args.out or args.data
   else:
-    result = generate(preset, args.seed)
+    try:
+      result = generate(preset, args.seed)
+    except ValueError as e:
+      print(f"Nie można wygenerować danych: {describe(e)}", file=sys.stderr)
+      return 2
     ds, seed = result.dataset, result.meta["seed"]
     out = args.out or Path("data/generated") / preset.name
-    write(result, out)  # zdarzenia odwołują się do tych danych, więc zapisujemy je obok
+    try:
+      write(result, out)  # zdarzenia odwołują się do tych danych, więc zapisujemy je obok
+    except OSError as e:
+      print(f"Nie można zapisać wyników do {out}: {e.strerror or e}", file=sys.stderr)
+      return 2
 
-  stream = generate_events(ds, preset, seed, errors=not args.no_errors)
-  out.mkdir(parents=True, exist_ok=True)
-  (out / EVENTS_FILE).write_text("\n".join(stream.lines) + "\n", encoding="utf-8")
-  (out / MANIFEST_FILE).write_text(dump_json({**stream.meta, "errorsList": stream.manifest}), encoding="utf-8")
+  try:
+    stream = generate_events(ds, preset, seed, errors=not args.no_errors)
+  except ValueError as e:  # np. katalog przedmiotów z presetu, którego nie da się wczytać
+    print(f"Nie można wygenerować zdarzeń: {describe(e)}", file=sys.stderr)
+    return 2
+  failed = write_outputs(out, {EVENTS_FILE: "\n".join(stream.lines) + "\n",
+                               MANIFEST_FILE: dump_json({**stream.meta, "errorsList": stream.manifest})})
+  if failed:
+    print(failed, file=sys.stderr)
+    return 2
   if not args.quiet:
     print(f"{stream.meta['events']} zdarzeń ({stream.meta['errors']} celowo błędnych) → {out / EVENTS_FILE}")
     for kind, n in sorted(stream.meta["types"].items()):
@@ -80,6 +106,9 @@ def _replay(args) -> int:
   """Komenda `replay`: wypisuje kolejne linie strumienia jako poprawne (✓) albo błędne (✗)."""
   if not args.file.exists():
     print(f"Nie ma pliku {args.file}", file=sys.stderr)
+    return 2
+  if args.speed is not None and (math.isnan(args.speed) or args.speed < 0):
+    print("--speed musi być liczbą ≥ 0 (0 albo inf = bez czekania)", file=sys.stderr)
     return 2
   items = replay(args.file, args.speed)
   while True:
@@ -102,6 +131,7 @@ def _replay(args) -> int:
       return 0
 
 
+@closed_pipe_safe
 def main(argv: list[str] | None = None) -> int:
   """Punkt wejścia `krok-events`; zwraca kod wyjścia (0 = sukces, 2 = złe argumenty)."""
   safe_output()

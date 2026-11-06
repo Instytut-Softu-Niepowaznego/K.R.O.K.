@@ -2,15 +2,14 @@
    uv run krok-env --preset edge-cases"""
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
 from pydantic import ValidationError
 
-from krok.console import safe_output
+from krok.console import closed_pipe_safe, describe, safe_output, write_outputs
 from krok.generator import generate, load_preset
-from krok.model import dump_json, load_dataset, reference_errors
+from krok.model import DatasetError, dump_json, load_dataset, reference_errors
 
 from .feasibility import FeasibilityReport, analyze
 
@@ -40,6 +39,7 @@ def render(report: FeasibilityReport, limit: int = 30) -> str:
   return "\n".join(lines)
 
 
+@closed_pipe_safe
 def main(argv: list[str] | None = None) -> int:
   """Punkt wejścia `krok-env`; zwraca 0 bez błędów, 1 gdy planu nie da się ułożyć, 2 przy złych danych lub argumentach."""
   safe_output()
@@ -62,14 +62,14 @@ def main(argv: list[str] | None = None) -> int:
       print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów). "
             "Najpierw import i czyszczenie (#9).", file=sys.stderr)
       return 2
-    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError) as e:
+    except DatasetError as e:  # brak pliku, katalog, uprawnienia, kodowanie, zły JSON albo zły kształt pliku
       print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
       return 2
   else:
     try:
       ds = generate(load_preset(args.preset), args.seed).dataset
-    except (FileNotFoundError, ValueError) as e:  # brak presetu, zły TOML lub zły preset, niespójne dane
-      print(f"Nie można wygenerować danych z presetu {args.preset}: {e}", file=sys.stderr)
+    except ValueError as e:  # PresetError, DatasetError danych bazowych, sprzeczny preset
+      print(f"Nie można wygenerować danych z presetu {args.preset}: {describe(e)}", file=sys.stderr)
       return 2
 
   broken = reference_errors(ds)
@@ -80,9 +80,10 @@ def main(argv: list[str] | None = None) -> int:
   state, report = analyze(ds)
   out = args.out or args.data
   if out:
-    out.mkdir(parents=True, exist_ok=True)
-    (out / REPORT_FILE).write_text(dump_json(report.model_dump(mode="json")), encoding="utf-8")
-    (out / STATE_FILE).write_text(dump_json(state.export()), encoding="utf-8")
+    failed = write_outputs(out, {REPORT_FILE: dump_json(report.model_dump(mode="json")), STATE_FILE: dump_json(state.export())})
+    if failed:
+      print(failed, file=sys.stderr)
+      return 2
   if not args.quiet:
     print(render(report))
   return 1 if report.verdict == "infeasible" else 0

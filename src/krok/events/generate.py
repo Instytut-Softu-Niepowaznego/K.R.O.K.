@@ -6,6 +6,7 @@ nie unieważnia kolejnych. Część zdarzeń (`events.error_rate`) jest celowo b
 """
 
 import datetime as dt
+import math
 import random
 from collections import Counter
 from dataclasses import dataclass, field
@@ -13,7 +14,7 @@ from dataclasses import dataclass, field
 from krok.model import EVENT_TYPES, Class, Dataset, Group, Rector, Subject, dump_event, parse_event, to_hhmm, to_minutes
 
 from krok.generator.lecturers import AvailabilityGenerator
-from krok.generator.settings import EventSpec, Preset, load_catalog
+from krok.generator.settings import MAX_EVENTS_PER_WEEK, EventSpec, Preset, load_catalog
 
 from .errors import ERROR_KINDS, inject_errors, to_line
 
@@ -181,6 +182,8 @@ def _timestamps(spec: EventSpec, start: dt.date, end: dt.date, rng: random.Rando
 def generate_events(ds: Dataset, preset: Preset, seed: int, *, errors: bool = True) -> EventStreamResult:
   """Strumień zdarzeń spójny z `ds`; `errors=False` daje same poprawne zdarzenia."""
   spec = preset.events
+  if not (math.isfinite(spec.per_week) and 0 < spec.per_week <= MAX_EVENTS_PER_WEEK):
+    raise ValueError(f"events.per_week musi być liczbą z zakresu (0, {MAX_EVENTS_PER_WEEK}], a jest {spec.per_week}")
   rng = random.Random(f"{seed}:events")
   builder = _Builder(ds, preset, rng)
   for name, given, known in [("events.weights", spec.weights, EVENT_TYPES), ("events.error_weights", spec.error_weights, ERROR_KINDS)]:
