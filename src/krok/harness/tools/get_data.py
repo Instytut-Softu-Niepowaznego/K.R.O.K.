@@ -1,18 +1,20 @@
-import json
-from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel
+from krok.db import connect, read_dataset
+from krok.db.legacy import legacy_view
 from .base import Tool
-
-DATA = Path(__file__).parents[2] / "data"
 
 class GetDataInput(BaseModel):
   type: Literal["buildings", "student-groups", "workers"]
 
 def load(name: str):
-  return json.loads((DATA / f"{name}.json").read_text(encoding="utf-8"))
+  engine = connect()
+  try:
+    return legacy_view(read_dataset(engine), name)
+  finally:
+    engine.dispose()
 
 def _run(args: GetDataInput):
   return load(args.type)
 
-get_data = Tool("get_data", "Zwraca budynki z salami, grupy z kursami lub prowadzących.", GetDataInput, _run)
+get_data = Tool("get_data", "Zwraca z bazy budynki z salami, grupy z kursami lub prowadzących.", GetDataInput, _run)

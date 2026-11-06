@@ -1,0 +1,102 @@
+"""Import katalogu z plikami JSON do bazy. Zaszumione dane nie przechodzą przez load_dataset, więc rekordy czyścimy osobno."""
+
+import json
+import re
+from pathlib import Path
+
+from pydantic import ValidationError
+from sqlalchemy import Engine
+
+from krok.model import Calendar, Config, Dataset, reference_errors
+from krok.model.dataset import LIST_FILES
+
+from .clean import Issue, Thresholds, clean_records
+from .schema import ENTITIES, write_dataset
+
+FACULTY_LISTS = ["faculties", "fields", "programs"]
+REFERENCE_ERROR = re.compile(r"^(\w+)/(.+?)(?:/lecturerPools/\w+)?: (.*)$")
+
+
+class ImportFailed(Exception):
+  """Bez config.json albo calendar.json nie ma z czego zbudować bazy. To jedyny powód przerwania importu."""
+
+
+def _read(path: Path, issues: list[Issue]):
+  try:
+    return json.loads(path.read_text(encoding="utf-8"))
+  except FileNotFoundError:
+    issues.append(Issue(path.name, None, "missingFile", "rejected", None, "brak pliku"))
+  except (json.JSONDecodeError, UnicodeDecodeError) as e:
+    issues.append(Issue(path.name, None, "invalidValue", "rejected", None, f"niepoprawny JSON: {e}"))
+  return None
+
+
+def _read_required(src: Path, name: str, model, unwrap=None):
+  try:
+    raw = json.loads((src / name).read_text(encoding="utf-8"))
+    return model.model_validate(raw[unwrap] if unwrap else raw)
+  except (OSError, json.JSONDecodeError, KeyError, ValidationError) as e:
+    raise ImportFailed(f"{name}: {e}") from e
+
+
+def _trim_pools(subjects, lecturers, issues: list[Issue]) -> None:
+  """Prowadzący spoza bazy wypada z puli. Inaczej przez jedną osobę stracilibyśmy przedmiot i wszystkie jego zajęcia."""
+  known = {lec.id for lec in lecturers}
+  for s in subjects:
+    if not s.lecturer_pools:
+      continue
+    pools = {form: [i for i in pool if i in known] for form, pool in s.lecturer_pools.items()}
+    pools = {form: pool for form, pool in pools.items() if pool}
+    if pools != s.lecturer_pools:
+      issues.append(Issue("subjects.json", s.id, "cascade", "fixed", "lecturerPools", "z puli usunięto prowadzących spoza bazy"))
+      s.lecturer_pools = pools or None
+
+
+def _resolve_references(parts: dict[str, list], config, calendar, rejected: set[str], issues: list[Issue]) -> Dataset:
+  """Usuwa rekordy z wiszącymi odwołaniami, aż dane będą spójne. Usunięcie rekordu może osierocić następne."""
+  while True:
+    _trim_pools(parts["subjects"], parts["lecturers"], issues)
+    ds = Dataset(config=config, calendar=calendar, **parts)
+    removed = False
+    for error in dict.fromkeys(reference_errors(ds)):
+      match = REFERENCE_ERROR.match(error)
+      if not match:
+        issues.append(Issue("references", None, "badReference", "flagged", None, error))
+        continue
+      name, rid, message = match.groups()
+      items = calendar.exceptions if name == "calendar" else parts[name]
+      if not any(i.id == rid for i in items):
+        continue  # kilka błędów tego samego rekordu w jednej rundzie
+      items[:] = [i for i in items if i.id != rid]
+      rejected.add(rid)
+      removed = True
+      kind = "cascade" if message.split()[-1] in rejected else "badReference"
+      issues.append(Issue("calendar.json" if name == "calendar" else f"{name}.json", rid, kind, "rejected", None, message))
+    if not removed:
+      return ds
+
+
+def clean_dir(src_dir: str | Path, limits: Thresholds = Thresholds()) -> tuple[Dataset, list[Issue]]:
+  src = Path(src_dir)
+  config = _read_required(src, "config.json", Config)
+  calendar = _read_required(src, "calendar.json", Calendar, "calendar")
+  issues: list[Issue] = []
+  parts: dict[str, list] = {}
+  rejected: set[str] = set()
+
+  faculties = _read(src / "faculties.json", issues) or {}
+  sources = {key: ("faculties.json", faculties.get(key, [])) for key in FACULTY_LISTS}
+  sources |= {key: (name, _read(src / name, issues) or []) for key, name in LIST_FILES.items()}
+  for key, (name, raw) in sources.items():
+    parts[key], found = clean_records(name, raw, ENTITIES[key], limits)
+    issues += found
+    rejected |= {i.record_id for i in found if i.action == "rejected" and i.record_id}
+    rejected -= {item.id for item in parts[key]}  # duplicateId odrzuca kopię, a pierwszy rekord zostaje
+
+  return _resolve_references(parts, config, calendar, rejected, issues), issues
+
+
+def import_dir(src_dir: str | Path, engine: Engine, limits: Thresholds = Thresholds()) -> tuple[Dataset, list[Issue]]:
+  ds, issues = clean_dir(src_dir, limits)
+  write_dataset(engine, ds, issues)
+  return ds, issues
