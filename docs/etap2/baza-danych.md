@@ -100,4 +100,4 @@ Ponowne odtworzenie tego samego pliku niczego nie zmienia w danych.
 
 `get_data` czyta z bazy. `src/krok/db/legacy.py` zwraca dane w kształcie starego prototypu, bo tych pól używają prompt agenta i `validate_plan`. `validate_plan` rozpoznaje rekordy po `name`, więc nazwy zawierają unikalne `id`. Widok można usunąć, gdy powstaną #13 i #17. Bez bazy narzędzie zwraca komunikat z poleceniem `krok-db import`.
 
-Raport z `krok-db report` to punkt wyjścia dla raportu jakości z #11.
+Raport z `krok-db report` to punkt wyjścia dla raportu jakości z #11: `krok-quality` ([percepcja.md](percepcja.md)).
