@@ -18,7 +18,7 @@
 - **Koniec zajęć** wyliczamy ze `start`, `units` i przerw z `rulesSnapshot` (model domeny, sekcja o czasie).
 - **Kolejne zajęcia.** Dwa spotkania tego samego planu studenta, prowadzącego lub sali w tym samym dniu, bez innego spotkania pomiędzy.
 - **Przerwa** między kolejnymi zajęciami = start drugich − koniec pierwszych, w minutach.
-- **Czas przejścia** między budynkami = odległość ze współrzędnych / `walkingSpeedKmh`. Macierz czasów liczy percepcja (#10).
+- **Czas przejścia** między budynkami = odległość w linii prostej ze współrzędnych × `routeFactor` / `walkingSpeedKmh`. Macierz czasów liczy percepcja (#10), a walidator liczy ją tym samym wzorem z wartości w `rulesSnapshot`.
 
 ## Reguły twarde
 
@@ -31,7 +31,7 @@ Plan z choćby jednym naruszeniem jest niepoprawny. Wartość reguły to liczba 
 | `kolizja-prowadzacych` | Prowadzący nie ma dwóch zajęć naraz | para nakładających się spotkań tego samego prowadzącego | — |
 | `kolizja-sal` | Sala nie ma dwóch zajęć naraz | para nakładających się spotkań w tej samej sali | — |
 | `przerwa-miedzy-zajeciami` | Między zajęciami jest co najmniej minimalna przerwa | kolejne zajęcia grupy (z hierarchią), prowadzącego lub sali z przerwą krótszą niż `minBetweenClassesMinutes` | z `timeGrid.breaks` |
-| `czas-przejscia` | Przejście między budynkami mieści się w przerwie | kolejne zajęcia planu studenta lub prowadzącego w różnych budynkach, gdy przerwa < `minBetweenClassesMinutes` + czas przejścia | `walkingSpeedKmh` z konfiguracji |
+| `czas-przejscia` | Przejście między budynkami mieści się w przerwie | kolejne zajęcia planu studenta lub prowadzącego w różnych budynkach, gdy przerwa < `minBetweenClassesMinutes` + czas przejścia | `walkingSpeedKmh`, `routeFactor` z konfiguracji |
 | `typ-sali` | Sala ma wymagany typ | spotkanie w sali o `type` różnym od `roomType` zajęć | — |
 | `pojemnosc-sali` | Sala mieści grupę | spotkanie w sali o `capacity` < `size` grupy, a także zajęcia, dla których żadna sala nie ma `capacity` ≥ `size` grupy (`classIds` w raporcie). Gdy `typ-sali` jest włączona, liczą się tylko sale o `type` równym `roomType` zajęć, a gdy wyłączona, każda sala | — |
 | `kompetencja-prowadzacego` | Prowadzący może prowadzić te zajęcia | spotkanie prowadzącego bez `competence` przedmiotu albo spoza `lecturerPools` dla formy zajęć, jeśli przedmiot ma pulę | — |
@@ -79,11 +79,12 @@ Plan może je naruszać. Solver minimalizuje naruszenia zgodnie z wagą. Wagi w 
 
 ## Reguły w konfiguracji
 
-Pełna lista z wartościami początkowymi. Wartości `timeGrid` i `walkingSpeedKmh` są w tym samym `config.json`, a reguły twarde, które z nich korzystają, nie powtarzają ich w `params`.
+Pełna lista z wartościami początkowymi. Wartości `timeGrid`, `walkingSpeedKmh` i `routeFactor` są w tym samym `config.json`, a reguły twarde, które z nich korzystają, nie powtarzają ich w `params`.
 
 ```json
 {
   "walkingSpeedKmh": 5,
+  "routeFactor": 1.3,
   "rules": [
     { "id": "spojnosc-planu",             "enabled": true, "kind": "hard" },
     { "id": "kolizja-grup",               "enabled": true, "kind": "hard" },

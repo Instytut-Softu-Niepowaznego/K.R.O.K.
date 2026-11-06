@@ -180,7 +180,7 @@ Budynki, sale i prowadzący mają pole `facultyIds`. Na razie zawiera jeden wydz
 
 Współrzędne i numery sal w przykładach są orientacyjne, prawdziwe wartości powstają w #6.
 
-Czas przejścia między budynkami liczony ze współrzędnych (odległość / `walkingSpeedKmh` z konfiguracji). Przejście musi zmieścić się w przerwie między zajęciami, inaczej jest to naruszenie.
+Czas przejścia między budynkami liczony ze współrzędnych: odległość w linii prostej × `routeFactor` / `walkingSpeedKmh`. Obie wartości są w konfiguracji. `routeFactor` (np. 1.3) uwzględnia, że trasa piesza jest dłuższa niż linia prosta. Przejście musi zmieścić się w przerwie między zajęciami, inaczej jest to naruszenie.
 
 ### Sala
 
@@ -262,7 +262,7 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 
 | Plik | Zawartość | Źródło |
 |---|---|---|
-| `config.json` | `timeGrid`, słownik typów sal, `walkingSpeedKmh` | ręcznie |
+| `config.json` | `timeGrid`, słownik typów sal, `walkingSpeedKmh`, `routeFactor` | ręcznie |
 | `calendar.json` | semestr, parzystość tygodni, wyjątki | ręcznie lub generator |
 | `faculties.json` | wydziały, kierunki, programy | generator |
 | `groups.json` | drzewo grup | generator |
@@ -293,7 +293,7 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
 ```json
 {
   "planId": "plan-2026-11-01-01",
-  "rulesSnapshot": { "timeGrid": { "...": "..." }, "rules": [], "walkingSpeedKmh": 5 },
+  "rulesSnapshot": { "timeGrid": { "...": "..." }, "rules": [], "walkingSpeedKmh": 5, "routeFactor": 1.3 },
   "assignments": [
     {
       "id": "BD-L-WJ-INF-inz-s3-L1#1",
@@ -311,7 +311,7 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
 ```
 
 - `id` przydziału = `classId` + `#` + numer spotkania w tygodniu, więc nie zmienia się po ponownym ułożeniu planu.
-- `rulesSnapshot` to pełna kopia `timeGrid`, `rules` i `walkingSpeedKmh` z chwili układania, czyli wszystkiego, od czego zależą godziny i czasy przejść.
+- `rulesSnapshot` to pełna kopia `timeGrid`, `rules`, `walkingSpeedKmh` i `routeFactor` z chwili układania, czyli wszystkiego, od czego zależą godziny i czasy przejść.
 - Koniec zajęć jest wyliczany z `start`, `units` i przerw z `rulesSnapshot`, nie jest przechowywany.
 
 ### Raport
