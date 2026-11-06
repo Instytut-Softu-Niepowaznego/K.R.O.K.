@@ -90,6 +90,18 @@ def test_home_building_fallback_skips_buildings_without_rooms(tmp_path):
   assert {lec.home_building_id for lec in ds.lecturers} <= {r.building_id for r in ds.rooms}
 
 
+def test_generator_keeps_explicitly_empty_rooms(tmp_path):
+  """Pusty plik sal nie zatrzymuje generatora i nie jest zastępowany salami bazowymi."""
+  empty = tmp_path / "rooms.json"
+  empty.write_text("[]", encoding="utf-8")
+
+  ds = generate(load_preset("mini"), rooms_path=empty).dataset
+
+  assert ds.rooms == []
+  assert ds.lecturers
+  assert {lec.home_building_id for lec in ds.lecturers} <= {b.id for b in ds.buildings}
+
+
 @pytest.mark.parametrize("preset", ["mini", "kierunek", "wydzial", "edge-cases"])
 def test_generator_accepts_base_data(preset):
   """Generator przyjmuje dane bazowe i nie daje nikomu budynku macierzystego P4."""
