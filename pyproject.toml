@@ -11,11 +11,13 @@ dependencies = [
     "openai>=3.29.0",
     "pydantic>=2.14.0",
     "python-dotenv>=1.2.4",
+    "sqlalchemy>=2.0",
 ]
 
 [project.scripts]
 krok = "krok:main"
 krok-gen = "krok.generator.cli:main"
+krok-db = "krok.db.cli:main"
 krok-events = "krok.events.cli:main"
 krok-env = "krok.perception.cli:main"
 
