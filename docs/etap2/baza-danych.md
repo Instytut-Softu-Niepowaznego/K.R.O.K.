@@ -37,7 +37,7 @@ P3-213,P3,213,lab-it,16,WJ
 - Separator kolumn to przecinek, a nazwy kolumn to pola JSON. Plik z Excela musi być zapisany z przecinkami, inaczej import zgłosi nieznane pole i odrzuci rekordy.
 - Elementy prostej listy rozdziela `;`, np. `WJ;WE`.
 - Pola zagnieżdżone, jak `availability` i `lecturerPools`, mają w komórce JSON.
-- Pusta komórka to `null` w polu opcjonalnym i brak pola w wymaganym.
+- Pusta komórka to `null` w polu opcjonalnym i brak pola w wymaganym, także przy listach. Pustą listę zapisuje się jako `[]`.
 
 Wiersze przechodzą przez te same modele pydantic i to samo czyszczenie co JSON. Problemy z rekordów mają w raporcie nazwę `rooms.json`, a błąd samego pliku `rooms.csv`.
 

@@ -333,7 +333,7 @@ def csv_cell(value) -> str:
   """Wartość JSON zapisana tak, jak zrobiłby to człowiek w arkuszu."""
   if value is None:
     return ""
-  if isinstance(value, list) and all(isinstance(v, str) for v in value):
+  if isinstance(value, list) and value and all(isinstance(v, str) for v in value):
     return ";".join(value)
   return json.dumps(value, ensure_ascii=False) if isinstance(value, (list, dict)) else str(value)
 
@@ -413,6 +413,25 @@ def test_csv_row_missing_required_cell_is_rejected(tmp_path, engine):
   ds, issues = import_dir(src, engine)
   assert ds.rooms == []
   assert ("missingField", "capacity") in {(i.kind, i.field) for i in issues}
+
+
+def test_csv_blank_required_list_is_rejected(tmp_path, engine):
+  """Pusta komórka listy wymaganej to brak pola, a nie pusta lista."""
+  src = generated(tmp_path, "mini")
+  room = rooms_as_csv_keys(src)[0]
+  write_rooms_csv(src, f"id,buildingId,number,type,capacity,facultyIds\n{room},lab-it,16,\n")
+  ds, issues = import_dir(src, engine)
+  assert ds.rooms == []
+  assert ("missingField", "facultyIds") in {(i.kind, i.field) for i in issues}
+
+
+def test_csv_explicit_empty_list_is_kept(tmp_path, engine):
+  """Zapis `[]` to świadomie pusta lista."""
+  src = generated(tmp_path, "mini")
+  room = rooms_as_csv_keys(src)[0]
+  write_rooms_csv(src, f"id,buildingId,number,type,capacity,facultyIds\n{room},lab-it,16,[]\n")
+  ds, _ = import_dir(src, engine)
+  assert ds.rooms[0].faculty_ids == []
 
 
 def test_broken_csv_encoding_is_reported(tmp_path, engine):

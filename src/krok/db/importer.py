@@ -39,7 +39,7 @@ def _csv_cell(value: str | None, is_list: bool):
       return json.loads(text)
     except ValueError:
       return text  # zły JSON odrzuci walidacja modelu i trafi do raportu
-  if is_list:
+  if is_list and text:
     return [item.strip() for item in text.split(";") if item.strip()]
   return text
 
@@ -47,7 +47,8 @@ def _csv_cell(value: str | None, is_list: bool):
 def read_csv_records(path: Path, model: type[Model]) -> list[dict]:
   """Wiersze CSV jako rekordy dla clean_records: nazwy kolumn to pola JSON, liczby zamienia model.
 
-  Pusta komórka to `null` w polu opcjonalnym i brak pola w wymaganym. BOM z Excela jest pomijany.
+  Pusta komórka to `null` w polu opcjonalnym i brak pola w wymaganym, także przy listach: pustą listę zapisuje się jako `[]`.
+  BOM z Excela jest pomijany.
   """
   fields = field_requirements(model)
   lists = {f.alias or name for name, f in model.model_fields.items() if get_origin(f.annotation) is list}
