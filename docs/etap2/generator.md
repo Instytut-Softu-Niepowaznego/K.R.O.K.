@@ -74,3 +74,5 @@ Szum jest nakładany na gotowe pliki, więc dane z szumem celowo nie przechodzą
 - `exactDuplicate` / `nearDuplicate`: ten sam rekord albo jego kopia z innym `id`.
 
 Każda zmiana trafia do `_noise.json`, więc #11 może policzyć, ile z nich wykryła percepcja.
+
+Zdarzenia w trakcie semestru do tych samych danych generuje `krok-events` (#8), opis w [zdarzenia.md](zdarzenia.md).

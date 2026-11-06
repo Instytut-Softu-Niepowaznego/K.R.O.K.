@@ -272,6 +272,7 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 | `lecturers.json` | prowadzący | generator (dostępność, limity) |
 | `subjects.json` | przedmioty z pulami prowadzących | generator |
 | `classes.json` | zajęcia do zaplanowania | generator |
+| `events.jsonl` | zdarzenia z otoczenia w trakcie semestru ([format](../etap2/zdarzenia.md)) | generator zdarzeń (#8) |
 
 `config.json` to obiekt `{timeGrid, roomTypes, walkingSpeedKmh, rules}`, `calendar.json` to `{"calendar": {...}}`, `faculties.json` to `{faculties, fields, programs}`, a pozostałe pliki to tablice encji. Ręczne dane bazowe WJ (`config.json`, `buildings.json`, `rooms.json`) leżą w `src/krok/data/wj/`.
 
