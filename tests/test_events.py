@@ -291,3 +291,11 @@ def test_replay_rejects_aware_bounds(bound):
   aware = dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc)
   with pytest.raises(ValueError, match=bound):
     list(replay([_line(1, "2026-10-01T10:00:00")], **{bound: aware}))
+
+
+def test_cli_generate_from_noisy_data_is_exit_2(tmp_path, capsys):
+  """Dane z szumem nie przechodzą walidacji: komunikat i kod 2 zamiast tracebacku."""
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--noise", "--out", str(tmp_path), "-q"]) == 0
+  assert main(["generate", "--data", str(tmp_path), "-q"]) == 2
+  assert "czystych danych" in capsys.readouterr().err
