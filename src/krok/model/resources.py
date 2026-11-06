@@ -23,8 +23,8 @@ class Room(Model):
 
   @model_validator(mode="after")
   def _check(self):
-    if self.id != f"{self.building_id}/{self.number}":
-      raise ValueError(f"{self.id}: id sali musi być równe buildingId/number")
+    if self.id != f"{self.building_id}-{self.number}":
+      raise ValueError(f"{self.id}: id sali musi być równe buildingId-number")
     return self
 
 

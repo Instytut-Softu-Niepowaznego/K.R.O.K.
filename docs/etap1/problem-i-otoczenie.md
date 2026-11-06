@@ -4,7 +4,7 @@
 
 ## Zakres
 
-Wydział Informatyki (WJ) Politechniki Opolskiej, budynki P1–P6. P6 należy do ogólnouczelnianego centrum językowego, ale stoi na naszym wydziale. Najpierw testujemy system na jednym kierunku, potem na całym wydziale. Cała uczelnia to opcjonalne rozszerzenie po Sprincie 3.
+Wydział Informatyki (WJ) Politechniki Opolskiej, budynki P1–P6 (P4 nie ma sal dydaktycznych). P6 należy do ogólnouczelnianego centrum językowego, ale stoi na naszym wydziale. Najpierw testujemy system na jednym kierunku, potem na całym wydziale. Cała uczelnia to opcjonalne rozszerzenie po Sprincie 3.
 
 ## Problem
 

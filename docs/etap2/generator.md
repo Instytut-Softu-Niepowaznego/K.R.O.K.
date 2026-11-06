@@ -6,7 +6,7 @@ Generator buduje realistyczny wydział, wzorowany na Wydziale Informatyki (WJ) P
 uv run krok-gen --list                                  # dostępne presety
 uv run krok-gen --preset wydzial --seed 42 --out data/generated/wydzial
 uv run krok-gen --preset kierunek --noise               # dane z szumem do testów percepcji
-uv run krok-gen --preset mini --rooms moje/rooms.json   # inne sale (np. z #6)
+uv run krok-gen --preset mini --rooms moje/rooms.json   # inne sale
 ```
 
 Ten sam preset i ten sam `--seed` dają identyczne pliki. Każdy etap (struktura, program, prowadzący, kalendarz, szum) ma własny strumień losowy, więc włączenie szumu nie zmienia czystych danych.
@@ -40,7 +40,7 @@ Przedmioty i kompetencje pochodzą z katalogu `presets/katalog-wj.toml`. Dla ka�
 3. **Prowadzący:** liczba wynika z zapotrzebowania (jednostki × `slack` / średni limit), osobno dla studiów dziennych i zaocznych. Część zaocznych (`cross_mode_share`) prowadzi kadra dzienna z dodaną dostępnością w weekend. Dostępność jest w godzinach i powstaje według wzorców (`pelny`, `rano`, `popoludnie`, `czesciowy`). Prowadzący dostają też losowe dodatkowe kompetencje i budynek macierzysty zgodny z kompetencją.
 4. **Obsada (`lecturerPools`):** część przedmiotów (`lecturers.pool_share`, domyślnie 60%) dostaje pule prowadzących per forma. Pula zawiera tylko osoby z kompetencją przedmiotu, ma co najmniej jedną osobę dostępną w dni robocze i jedną w weekend, jeśli forma ma zajęcia dzienne i zaoczne, a jej łączny limit pokrywa zapotrzebowanie formy × `slack`. Gdy tego nie da się spełnić, forma zostaje bez puli i solver wybiera spośród wszystkich prowadzących z kompetencją.
 5. **Kalendarz:** semestr, polskie święta (z Wielkanocą i Bożym Ciałem dla semestru letniego), przerwy, dni i godziny rektorskie, odpracowanie (`dayOverride`), blokady sal, zjazdy zaoczne co `part_time_every_weeks` tygodni oraz tygodnie bez parzystości (cały tydzień wolny).
-6. **Sale i budynki:** wczytywane z `src/krok/data/wj/`. Do czasu #6 są to dane **tymczasowe** (przybliżone współrzędne, wymyślone sale). Brakująca `capacity` jest losowana z `room_capacity`.
+6. **Sale i budynki:** wczytywane z `src/krok/data/wj/` (#6). To dane **testowe**: układ sal jest prawdziwy, a typy i pojemności wymyślone. Brakująca `capacity` jest losowana z `room_capacity`.
 
 Na końcu całość przechodzi walidację modelu i sprawdzenie referencji (`krok.model.reference_errors`). Podsumowanie w CLI pokazuje zgrubny bilans sal i prowadzących. Dokładny bilans liczy #10.
 
