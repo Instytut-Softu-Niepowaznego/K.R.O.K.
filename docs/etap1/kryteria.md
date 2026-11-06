@@ -33,7 +33,7 @@ Plan z choćby jednym naruszeniem jest niepoprawny. Wartość reguły to liczba 
 | `przerwa-miedzy-zajeciami` | Między zajęciami jest co najmniej minimalna przerwa | kolejne zajęcia grupy (z hierarchią), prowadzącego lub sali z przerwą krótszą niż `minBetweenClassesMinutes` | z `timeGrid.breaks` |
 | `czas-przejscia` | Przejście między budynkami mieści się w przerwie | kolejne zajęcia planu studenta lub prowadzącego w różnych budynkach, gdy przerwa < `minBetweenClassesMinutes` + czas przejścia | `walkingSpeedKmh` z konfiguracji |
 | `typ-sali` | Sala ma wymagany typ | spotkanie w sali o `type` różnym od `roomType` zajęć | — |
-| `pojemnosc-sali` | Sala mieści grupę | spotkanie w sali o `capacity` < `size` grupy, a także zajęcia, dla których żadna sala nie spełnia typu i pojemności (`classIds` w raporcie) | — |
+| `pojemnosc-sali` | Sala mieści grupę | spotkanie w sali o `capacity` < `size` grupy, a także zajęcia, dla których żadna sala nie ma `capacity` ≥ `size` grupy (`classIds` w raporcie). Gdy `typ-sali` jest włączona, liczą się tylko sale o `type` równym `roomType` zajęć, a gdy wyłączona, każda sala | — |
 | `kompetencja-prowadzacego` | Prowadzący może prowadzić te zajęcia | spotkanie prowadzącego bez `competence` przedmiotu albo spoza `lecturerPools` dla formy zajęć, jeśli przedmiot ma pulę | — |
 | `dostepnosc-prowadzacego` | Prowadzący uczy tylko w godzinach dostępności | spotkanie, które nie mieści się w całości w jednym zakresie `availability` prowadzącego w tym dniu | — |
 | `blokady-zasobow` | Zajęcia omijają blokady na cały semestr | spotkanie w sali, z prowadzącym lub grupą objętą `resourceBlock` trwającym cały semestr | — |
