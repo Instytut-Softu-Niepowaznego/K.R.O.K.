@@ -127,8 +127,8 @@ def test_no_errors_option(world):
 
 
 @pytest.mark.parametrize("payload", [
-  {"type": "roomUnavailable", "payload": {"roomId": "P1/101", "from": "2026-10-10", "to": "2026-10-01"}},
-  {"type": "roomUnavailable", "payload": {"roomId": "P1/101", "from": "2026-10-10", "to": "2026-10-11", "fromTime": "10:00"}},
+  {"type": "roomUnavailable", "payload": {"roomId": "P1-101", "from": "2026-10-10", "to": "2026-10-01"}},
+  {"type": "roomUnavailable", "payload": {"roomId": "P1-101", "from": "2026-10-10", "to": "2026-10-11", "fromTime": "10:00"}},
   {"type": "groupSizeChanged", "payload": {"groupId": "g", "size": 0, "effectiveFrom": "2026-10-10"}},
   {"type": "groupAdded", "payload": {"group": {"id": "g", "programId": "p", "parentId": "x", "kind": "lab", "size": 5}}},
   {"type": "subjectAdded", "payload": {"subject": {"id": "s", "name": "S", "competence": "c"}, "classes": []}},
