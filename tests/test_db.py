@@ -13,7 +13,7 @@ from krok.events import generate_events
 from krok.generator import generate, load_preset, write
 from krok.harness.plan import Lesson, validate
 from krok.harness.tools.get_data import load
-from krok.model import Group, Lecturer, reference_errors
+from krok.model import Class, Group, Lecturer, reference_errors
 
 # Literówka w odwołaniu może trafić w inny istniejący id, więc tego nie da się wykryć.
 REFERENCE_TARGETS = {"programId": "programs", "parentId": "groups", "buildingId": "buildings", "homeBuildingId": "buildings",
@@ -136,6 +136,22 @@ def test_rejected_record_is_not_counted_as_flagged():
   items, issues = clean_records("groups.json", raw, Group)
   assert items == []
   assert [(i.kind, i.action, i.field) for i in issues] == [("missingField", "rejected", "parentId")]
+
+
+def test_cohort_is_rejected_for_missing_semester_not_parent():
+  raw = [{"id": "R", "programId": "P", "kind": "cohort", "size": 60}]
+  items, issues = clean_records("groups.json", raw, Group)
+  assert items == []
+  assert [(i.kind, i.action, i.field) for i in issues] == [("missingField", "rejected", "semester")]
+
+
+def test_model_error_is_not_blamed_on_missing_optional_field():
+  raw = [{"id": "C", "subjectId": "S", "form": "L", "groupId": "G", "unitsPerWeek": 3, "unitsPerMeeting": 2, "parity": "every",
+          "roomType": "lab-it"}]
+  items, issues = clean_records("classes.json", raw, Class)
+  assert items == []
+  assert [(i.kind, i.action) for i in issues] == [("invalidValue", "rejected")]
+  assert "podzielne" in issues[0].message
 
 
 def test_kept_record_with_missing_optional_field_is_flagged():
