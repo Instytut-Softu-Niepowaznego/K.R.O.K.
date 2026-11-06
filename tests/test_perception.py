@@ -465,3 +465,10 @@ def test_competence_limit_is_checked_per_study_mode():
   _, report = analyze(ds)
   hits = [p for p in errors_with(report, "limit-kompetencji") if k in p.ids]
   assert hits and "(part-time)" in hits[0].message
+
+
+def test_cli_data_with_invalid_utf8_is_exit_2(tmp_path):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  (tmp_path / "groups.json").write_bytes(b"\xff\xfe")
+  assert main(["--data", str(tmp_path), "-q"]) == 2

@@ -62,7 +62,7 @@ def main(argv: list[str] | None = None) -> int:
       print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów). "
             "Najpierw import i czyszczenie (#9).", file=sys.stderr)
       return 2
-    except (FileNotFoundError, json.JSONDecodeError) as e:
+    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError) as e:
       print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
       return 2
   else:
