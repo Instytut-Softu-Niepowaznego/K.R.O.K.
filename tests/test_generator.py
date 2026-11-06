@@ -161,8 +161,7 @@ def test_lecturer_pools_cover_modes_and_demand(results, name):
       for m in {gmode[c.group_id] for c in cs}:
         weekend = m == "part-time"
         assert any(any((a.day in ("So", "Nd")) == weekend for a in x.availability) for x in members), (s.id, form, m)
-      need = sum(c.units_per_week * (1 if c.parity == "every" else 0.5) for c in cs)
-      assert sum(x.max_units_weekly for x in members) >= need, (s.id, form)
+      assert sum(x.max_units_weekly for x in members) >= expected_week_units(cs), (s.id, form)  # jak limit-puli
       slack = load_preset(name).lecturers.slack
       for m in {gmode[c.group_id] for c in cs}:
         in_mode = [c for c in cs if gmode[c.group_id] == m]

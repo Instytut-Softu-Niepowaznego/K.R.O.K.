@@ -9,12 +9,10 @@ from dataclasses import dataclass, field
 
 from krok.model import Availability, Calendar, Class, DayOverride, Group, Holiday, Lecturer, Rector, ResourceBlock, Room, Scope, Subject
 
-from .lecturers import class_modes
+from .lecturers import class_modes, peak_units
 
 
-def week_units(classes: list[Class]) -> int:
-  """Jednostki w gorszym tygodniu (A lub B); limit prowadzącego sprawdza się osobno dla każdego tygodnia."""
-  return max(sum(c.units_per_week for c in classes if c.parity in ("every", w)) for w in ("A", "B"))
+week_units = peak_units  # jednostki w gorszym tygodniu A/B
 
 
 @dataclass
