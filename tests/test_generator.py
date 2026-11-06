@@ -10,8 +10,14 @@ from krok.generator.calendar import easter
 from krok.generator.cli import main
 from krok.generator.core import load_generated
 from krok.generator.curriculum import FORM_GROUP_KIND
-from krok.generator.edge_cases import week_units
+from krok.generator.lecturers import available_minutes
 from krok.model import dataset_from_files, reference_errors, to_minutes
+from krok.perception.measures import meeting_minutes
+
+
+def expected_week_units(classes) -> int:
+  """Niezależnie od kodu generatora: jednostki w gorszym tygodniu A lub B."""
+  return max(sum(c.units_per_week for c in classes if c.parity in ("every", week)) for week in ("A", "B"))
 
 CLEAN = ["mini", "kierunek", "wydzial"]
 
@@ -123,7 +129,7 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   assert all(r.capacity < big.size for r in ds.rooms if r.type == room_type)
   assert lecturers[cases["prowadzacy-bez-dostepnosci"]["ids"][0]].availability == []
   over = lecturers[cases["limit-ponizej-obciazenia"]["ids"][0]]
-  assert week_units([c for c in ds.classes if c.lecturer_id == over.id]) > over.max_units_weekly
+  assert expected_week_units([c for c in ds.classes if c.lecturer_id == over.id]) > over.max_units_weekly
 
   subjects = {s.id: s for s in ds.subjects}
   sid, lid, *class_ids = cases["pula-niedostepna"]["ids"]
@@ -132,7 +138,7 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   assert all(a.day in ("So", "Nd") for a in lecturers[lid].availability)
   sid, *ids = cases["pula-za-maly-limit"]["ids"]
   pool_ids = [i for i in ids if i in lecturers]
-  assert sum(lecturers[i].max_units_weekly for i in pool_ids) < week_units([c for c in ds.classes if c.id in ids])
+  assert sum(lecturers[i].max_units_weekly for i in pool_ids) < expected_week_units([c for c in ds.classes if c.id in ids])
 
 
 @pytest.mark.parametrize("name", CLEAN)
@@ -157,6 +163,12 @@ def test_lecturer_pools_cover_modes_and_demand(results, name):
         assert any(any((a.day in ("So", "Nd")) == weekend for a in x.availability) for x in members), (s.id, form, m)
       need = sum(c.units_per_week * (1 if c.parity == "every" else 0.5) for c in cs)
       assert sum(x.max_units_weekly for x in members) >= need, (s.id, form)
+      slack = load_preset(name).lecturers.slack
+      for m in {gmode[c.group_id] for c in cs}:
+        in_mode = [c for c in cs if gmode[c.group_id] == m]
+        minutes = max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, ds.config.time_grid)
+                          for c in in_mode if c.parity in ("every", w)) for w in ("A", "B"))
+        assert sum(available_minutes(x, m, ds.config) for x in members) >= minutes * slack, (s.id, form, m)
 
 
 def test_noise_changes_only_noisy_files_and_is_logged():

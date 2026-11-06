@@ -318,3 +318,49 @@ def test_clean_presets_have_no_errors_across_seeds():
     for seed in range(15):
       _, report = analyze(generate(preset, seed).dataset)
       assert report.errors == 0, (name, seed, [p.message for p in report.problems if p.severity == "error"])
+
+
+def test_timed_block_covering_whole_day_blocks_group():
+  """Blokada z godzinami szerszymi niż dzień zajęć (07:00–21:00 przy 07:30–20:00) blokuje grupę jak całodniowa."""
+  ds = data()
+  cohort = next(g for g in ds.groups if g.kind == "cohort")
+  block = full_block(ds, "g", group_ids=[cohort.id])
+  block.from_time, block.to_time = "07:00", "21:00"
+  ds.calendar.exceptions.append(block)
+  _, report = analyze(ds)
+  assert len(errors_with(report, "zablokowana-grupa")) == len(ds.classes)
+
+
+@pytest.mark.parametrize("broken", ["missing-file", "bad-json"])
+def test_cli_unreadable_data_is_exit_2(tmp_path, broken):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  if broken == "missing-file":
+    (tmp_path / "calendar.json").unlink()
+  else:
+    (tmp_path / "rooms.json").write_text("{zly json")
+  assert main(["--data", str(tmp_path), "-q"]) == 2
+
+
+def test_cli_bad_preset_is_exit_2(tmp_path):
+  (tmp_path / "zly.toml").write_text('name = "x"\n[[fields]\n')
+  assert main(["--preset", str(tmp_path / "zly.toml"), "-q"]) == 2
+  (tmp_path / "pusty.toml").write_text('name = "x"\n')  # brak wymaganego pola fields
+  assert main(["--preset", str(tmp_path / "pusty.toml"), "-q"]) == 2
+
+
+@pytest.mark.parametrize("args, code", [
+  (["krok.perception.cli", "--preset", "edge-cases"], 1),
+  (["krok.generator.cli", "--preset", "mini", "--out", "{tmp}"], 0),
+  (["krok.events.cli", "generate", "--preset", "mini", "--out", "{tmp}"], 0),
+])
+def test_cli_survives_legacy_console_encoding(tmp_path, args, code):
+  """Na konsoli cp1252 (np. Windows z przekierowaniem) polskie znaki i ✓/✗ nie przerywają programu."""
+  import os
+  import subprocess
+  import sys
+  env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+  argv = [a.replace("{tmp}", str(tmp_path)) for a in args]
+  result = subprocess.run([sys.executable, "-m", *argv], capture_output=True, env=env)
+  assert result.returncode == code, result.stderr.decode("cp1252", "replace")[-300:]
+  assert b"UnicodeEncodeError" not in result.stderr

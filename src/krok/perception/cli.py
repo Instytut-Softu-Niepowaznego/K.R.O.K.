@@ -2,11 +2,13 @@
    uv run krok-env --preset edge-cases"""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 from pydantic import ValidationError
 
+from krok.console import safe_output
 from krok.generator import generate, load_preset
 from krok.model import dump_json, load_dataset, reference_errors
 
@@ -40,6 +42,7 @@ def render(report: FeasibilityReport, limit: int = 30) -> str:
 
 def main(argv: list[str] | None = None) -> int:
   """Punkt wejścia `krok-env`; zwraca 0 bez błędów, 1 gdy planu nie da się ułożyć, 2 przy złych danych lub argumentach."""
+  safe_output()
   p = argparse.ArgumentParser(prog="krok-env", description="Stan otoczenia i raport wykonalności (K.R.O.K. #10)")
   src = p.add_mutually_exclusive_group(required=True)
   src.add_argument("--data", type=Path, help="katalog z danymi w formacie z modelu domeny (np. z krok-gen)")
@@ -55,15 +58,18 @@ def main(argv: list[str] | None = None) -> int:
       return 2
     try:
       ds = load_dataset(args.data)
-    except ValidationError as e:
+    except ValidationError as e:  # przed ValueError: ValidationError dziedziczy po ValueError
       print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów). "
             "Najpierw import i czyszczenie (#9).", file=sys.stderr)
+      return 2
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+      print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
       return 2
   else:
     try:
       ds = generate(load_preset(args.preset), args.seed).dataset
-    except FileNotFoundError as e:
-      print(e, file=sys.stderr)
+    except (FileNotFoundError, ValueError) as e:  # brak presetu, zły TOML lub zły preset, niespójne dane
+      print(f"Nie można wygenerować danych z presetu {args.preset}: {e}", file=sys.stderr)
       return 2
 
   broken = reference_errors(ds)
