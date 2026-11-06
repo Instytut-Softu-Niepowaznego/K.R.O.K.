@@ -57,7 +57,8 @@ def generate(preset: Preset, seed: int | None = None, *, buildings_path: Path | 
 
   faculties, fields, programs, groups, cohorts = build_structure(preset, _stream(seed, "structure"))
   subjects, classes = build_curriculum(preset, catalog, cohorts, _stream(seed, "curriculum"))
-  teaching_buildings = [b for b in buildings if any(r.building_id == b.id for r in rooms)]
+  # Pusta lista sal to dozwolone dane: brak sal pokazuje bilans, a prowadzący dalej potrzebują budynku.
+  teaching_buildings = [b for b in buildings if any(r.building_id == b.id for r in rooms)] or buildings
   lecturers = build_lecturers(preset, catalog, config, teaching_buildings, subjects, classes, groups, programs, _stream(seed, "lecturers"))
   build_pools(preset, subjects, classes, lecturers, groups, programs, _stream(seed, "pools"))
   calendar = build_calendar(preset, rooms, _stream(seed, "calendar"))
