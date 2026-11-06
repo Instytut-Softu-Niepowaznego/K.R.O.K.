@@ -331,8 +331,17 @@ def test_cli_replay_closed_pipe_is_not_an_input_error(tmp_path):
   path.write_text("\n".join(_line(i, "2026-10-01T10:00:00") for i in range(30_000)) + "\n")  # więcej niż bufor potoku
   proc = subprocess.Popen([sys.executable, "-m", "krok.events.cli", "replay", str(path)], stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
-  assert proc.stdout.readline().startswith("✓".encode())
+  # Same pola ASCII: przy kodowaniu potoku innym niż UTF-8 (np. cp1252) safe_output() zamienia ✓ na „?”.
+  assert b"2026-10-01 10:00 E-0 lecturerAbsent" in proc.stdout.readline()
   proc.stdout.close()  # jak head -1
   err = proc.stderr.read()
   assert proc.wait() == 0
   assert b"Traceback" not in err and "Nie można odczytać".encode() not in err
+
+
+def test_cli_generate_from_data_with_invalid_utf8_is_exit_2(tmp_path, capsys):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  (tmp_path / "groups.json").write_bytes(b"\xff\xfe")
+  assert main(["generate", "--data", str(tmp_path), "-q"]) == 2
+  assert "Nie można wczytać" in capsys.readouterr().err

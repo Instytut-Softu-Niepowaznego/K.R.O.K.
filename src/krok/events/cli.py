@@ -49,7 +49,7 @@ def _generate(args) -> int:
       print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów), np. dane z szumem. "
             "Zdarzenia generuj z czystych danych (ten sam preset i seed bez --noise).", file=sys.stderr)
       return 2
-    except (FileNotFoundError, json.JSONDecodeError) as e:
+    except (FileNotFoundError, json.JSONDecodeError, UnicodeDecodeError) as e:
       print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
       return 2
     broken = reference_errors(ds)
