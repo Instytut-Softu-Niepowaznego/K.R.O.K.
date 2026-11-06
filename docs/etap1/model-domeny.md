@@ -4,7 +4,7 @@
 
 ## Zakres
 
-Modelujemy jeden wydział: Wydział Informatyki (WJ) Politechniki Opolskiej, budynki P1–P6. Najpierw test na jednym kierunku, potem pełne testy całego wydziału. Dane, których nie znamy, są generowane.
+Modelujemy jeden wydział: Wydział Informatyki (WJ) Politechniki Opolskiej, budynki P1–P6 (P4 nie ma sal dydaktycznych). Najpierw test na jednym kierunku, potem pełne testy całego wydziału. Dane, których nie znamy, są generowane.
 
 - Model zachowuje `facultyId` i `facultyIds`, żeby dało się później rozszerzyć go na kolejne wydziały. Cała uczelnia to opcjonalne rozszerzenie po Sprincie 3.
 - Prowadzący spoza wydziału (np. matematyka, fizyka) to zwykli prowadzący z ograniczoną dostępnością.
@@ -113,7 +113,7 @@ Tygodniowy plan jest rdzeniem. Kalendarz nakłada go na konkretne daty semestru 
       { "id": "odpracowanie",          "type": "dayOverride", "date": "2026-12-15", "followsDay": "Pt", "followsParity": "B",
         "label": "Wtorek z zajęciami jak w piątek B" },
       { "id": "remont-p1-101",         "type": "resourceBlock", "from": "2026-11-02", "to": "2026-11-13",
-        "scope": { "roomIds": ["P1/101"] }, "label": "Remont sali" }
+        "scope": { "roomIds": ["P1-101"] }, "label": "Remont sali" }
     ]
   }
 }
@@ -186,10 +186,10 @@ Czas przejścia między budynkami w minutach liczony ze współrzędnych: odleg�
 ### Sala
 
 ```json
-{ "id": "P1/101", "buildingId": "P1", "number": "101", "type": "lab-it", "capacity": 16, "facultyIds": ["WJ"] }
+{ "id": "P1-101", "buildingId": "P1", "number": "101", "type": "lab-it", "capacity": 16, "facultyIds": ["WJ"] }
 ```
 
-- `id` = `buildingId` + `/` + `number` (unikalne globalnie).
+- `id` = `buildingId` + `-` + `number` (unikalne globalnie), np. `P3-213`. Pierwsza cyfra `number` to kondygnacja.
 - `type`: `lecture-hall` | `classroom` | `lab-it` | `lab-electronics` | … (słownik w konfiguracji).
 
 ### Prowadzący
@@ -303,7 +303,7 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
       "classId": "BD-L-WJ-INF-inz-s3-L1",
       "groupId": "WJ-INF-inz-s3-L1",
       "lecturerId": "P-0042",
-      "roomId": "P1/101",
+      "roomId": "P1-101",
       "day": "Pn",
       "start": "08:20",
       "units": 2,
