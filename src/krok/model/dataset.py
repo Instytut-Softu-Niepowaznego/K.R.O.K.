@@ -137,8 +137,20 @@ def reference_errors(ds: Dataset) -> list[str]:
     ref(f"lecturers/{lec.id}", "homeBuildingId", lec.home_building_id, buildings)
     for fid in lec.faculty_ids:
       ref(f"lecturers/{lec.id}", "facultyId", fid, faculties)
+  lecturer_by_id = {lec.id: lec for lec in ds.lecturers}
+  for s in ds.subjects:
+    for form, pool in (s.lecturer_pools or {}).items():
+      for lid in pool:
+        ref(f"subjects/{s.id}/lecturerPools/{form}", "lecturerId", lid, lecturers)
+        if lid in lecturer_by_id and s.competence not in lecturer_by_id[lid].competences:
+          errors.append(f"subjects/{s.id}/lecturerPools/{form}: {lid} nie ma kompetencji {s.competence}")
+      if len(set(pool)) != len(pool):
+        errors.append(f"subjects/{s.id}/lecturerPools/{form}: powtórzony prowadzący")
   for c in ds.classes:
     ref(f"classes/{c.id}", "subjectId", c.subject_id, subjects)
+    pool = subjects[c.subject_id].pool(c.form) if c.subject_id in subjects else None
+    if c.lecturer_id and pool is not None and c.lecturer_id not in pool:
+      errors.append(f"classes/{c.id}: lecturerId {c.lecturer_id} spoza puli {c.subject_id}/{c.form}")
     ref(f"classes/{c.id}", "groupId", c.group_id, groups)
     ref(f"classes/{c.id}", "roomType", c.room_type, room_types)
     ref(f"classes/{c.id}", "lecturerId", c.lecturer_id, lecturers)

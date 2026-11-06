@@ -96,6 +96,7 @@ class LecturerSpec(Strict):
   slack: float = Field(default=1.3, ge=1)  # pojemność prowadzących / zapotrzebowanie
   extra_competences: IntRange = (0, 2)
   cross_mode_share: float = Field(default=0.5, ge=0, le=1)  # część zaocznych prowadzonych przez kadrę dzienną
+  pool_share: float = Field(default=0.6, ge=0, le=1)  # część przedmiotów z obsadą (lecturerPools)
   time_step_minutes: int = 15
   external_days: IntRange = (1, 2)
   external_hours: IntRange = (4, 7)

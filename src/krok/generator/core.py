@@ -13,6 +13,7 @@ from .calendar import build_calendar
 from .curriculum import build_curriculum
 from .lecturers import build_lecturers, class_load, class_modes
 from .noise import apply_noise
+from .pools import build_pools
 from .settings import BASE_DATA_DIR, Preset, load_catalog
 from .structure import build_structure
 
@@ -57,6 +58,7 @@ def generate(preset: Preset, seed: int | None = None, *, buildings_path: Path | 
   faculties, fields, programs, groups, cohorts = build_structure(preset, _stream(seed, "structure"))
   subjects, classes = build_curriculum(preset, catalog, cohorts, _stream(seed, "curriculum"))
   lecturers = build_lecturers(preset, catalog, config, buildings, subjects, classes, groups, programs, _stream(seed, "lecturers"))
+  build_pools(preset, subjects, classes, lecturers, groups, programs, _stream(seed, "pools"))
   calendar = build_calendar(preset, rooms, _stream(seed, "calendar"))
 
   cases: list[dict] = []

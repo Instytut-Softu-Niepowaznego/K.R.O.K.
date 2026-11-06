@@ -37,16 +37,25 @@ class TimeGrid(Model):
     return self
 
 
+class Target(Model):
+  """Warunek wartości docelowej reguły, np. {"stat": "meanPerLeafGroup", "max": 120} (docs/etap1/kryteria.md)."""
+
+  stat: Id
+  max: float
+
+
 class Rule(Model):
   id: Id
   enabled: bool = True
   kind: Literal["hard", "soft"]
   weight: float | None = None
   params: dict[str, Any] = {}
+  target: list[Target] | None = None
 
 
 class Config(Model):
   time_grid: TimeGrid
   room_types: list[Id]
   walking_speed_kmh: float = Field(gt=0)
+  route_factor: float = Field(ge=1)  # trasa piesza / linia prosta
   rules: list[Rule] = []

@@ -109,7 +109,8 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   cases = {c["case"]: c for c in r.meta["edgeCases"]}
   assert set(cases) == {"grupa-wieksza-od-sal", "przedmiot-bez-prowadzacego", "prowadzacy-bez-dostepnosci",
                         "limit-ponizej-obciazenia", "zajecia-1-jednostkowe", "zajecia-ab", "prowadzacy-dzienne-i-zaoczne",
-                        "zajecia-dluzsze-niz-dostepnosc", "nakladajace-sie-wyjatki", "odpracowanie-w-dniu-wolnym"}
+                        "zajecia-dluzsze-niz-dostepnosc", "pula-niedostepna", "pula-za-maly-limit",
+                        "nakladajace-sie-wyjatki", "odpracowanie-w-dniu-wolnym"}
   known = {x.id for coll in (ds.groups, ds.lecturers, ds.subjects, ds.classes, ds.calendar.exceptions) for x in coll}
   for c in cases.values():
     assert set(c["ids"]) <= known, c["case"]
@@ -122,6 +123,40 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   assert lecturers[cases["prowadzacy-bez-dostepnosci"]["ids"][0]].availability == []
   over = lecturers[cases["limit-ponizej-obciazenia"]["ids"][0]]
   assert sum(c.units_per_week for c in ds.classes if c.lecturer_id == over.id) > over.max_units_weekly
+
+  subjects = {s.id: s for s in ds.subjects}
+  sid, lid, *class_ids = cases["pula-niedostepna"]["ids"]
+  form = next(c.form for c in ds.classes if c.id == class_ids[0])
+  assert subjects[sid].pool(form) == [lid]
+  assert all(a.day in ("So", "Nd") for a in lecturers[lid].availability)
+  sid, *ids = cases["pula-za-maly-limit"]["ids"]
+  pool_ids = [i for i in ids if i in lecturers]
+  need = sum(c.units_per_week for c in ds.classes if c.id in ids)
+  assert sum(lecturers[i].max_units_weekly for i in pool_ids) < need
+
+
+@pytest.mark.parametrize("name", CLEAN)
+def test_lecturer_pools_cover_modes_and_demand(results, name):
+  """Typowa pula: kompetencja, osoba na każdy tryb studiów i łączny limit ≥ zapotrzebowanie formy."""
+  ds = results[name].dataset
+  lecturers = {lec.id: lec for lec in ds.lecturers}
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+  pooled = [s for s in ds.subjects if s.lecturer_pools]
+  assert pooled
+  if len(ds.subjects) >= 20:
+    assert len(pooled) < len(ds.subjects)  # część przedmiotów bez puli (pool_share)
+  for s in pooled:
+    for form, pool in s.lecturer_pools.items():
+      cs = [c for c in ds.classes if c.subject_id == s.id and c.form == form]
+      assert cs, (s.id, form)
+      members = [lecturers[i] for i in pool]
+      assert all(s.competence in m.competences and m.availability for m in members)
+      for m in {gmode[c.group_id] for c in cs}:
+        weekend = m == "part-time"
+        assert any(any((a.day in ("So", "Nd")) == weekend for a in x.availability) for x in members), (s.id, form, m)
+      need = sum(c.units_per_week * (1 if c.parity == "every" else 0.5) for c in cs)
+      assert sum(x.max_units_weekly for x in members) >= need, (s.id, form)
 
 
 def test_noise_changes_only_noisy_files_and_is_logged():
