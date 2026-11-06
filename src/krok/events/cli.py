@@ -17,6 +17,7 @@ MANIFEST_FILE = "_events.json"
 
 
 def _generate(args) -> int:
+  """Komenda `generate`: dane (z --data albo z presetu) + events.jsonl i _events.json."""
   meta_path = args.data / "_meta.json" if args.data else None
   meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path and meta_path.exists() else {}
   try:
@@ -60,6 +61,7 @@ def _generate(args) -> int:
 
 
 def _replay(args) -> int:
+  """Komenda `replay`: wypisuje kolejne linie strumienia jako poprawne (✓) albo błędne (✗)."""
   if not args.file.exists():
     print(f"Nie ma pliku {args.file}", file=sys.stderr)
     return 2
@@ -73,6 +75,7 @@ def _replay(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+  """Punkt wejścia `krok-events`; zwraca kod wyjścia (0 = sukces, 2 = złe argumenty)."""
   p = argparse.ArgumentParser(prog="krok-events", description="Strumień zdarzeń z otoczenia (K.R.O.K. #8)")
   sub = p.add_subparsers(dest="command", required=True)
 

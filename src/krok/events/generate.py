@@ -30,13 +30,16 @@ ELECTIVES = [
 
 @dataclass
 class EventStreamResult:
+  """Wynik generatora: linie JSONL, manifest celowych błędów i metadane strumienia."""
   lines: list[str]
   manifest: list[dict]
   meta: dict = field(default_factory=dict)
 
 
 class _Builder:
+  """Buduje payload każdego typu zdarzenia; nazwy metod to wartości `type`."""
   def __init__(self, ds: Dataset, preset: Preset, rng: random.Random):
+    """Przygotowuje indeksy danych, zajęte id i generator dostępności."""
     self.ds, self.spec, self.rng = ds, preset.events, rng
     self.preset = preset
     self.start, self.end = ds.calendar.semester_start, ds.calendar.semester_end
@@ -53,6 +56,7 @@ class _Builder:
   # --- czas ---
 
   def effective(self, ts: dt.datetime, notice: tuple[int, int] | None = None) -> dt.date:
+    """Dzień, od którego zmiana obowiązuje: `timestamp` + wyprzedzenie, w semestrze, przesunięty na dzień roboczy."""
     day = ts.date() + dt.timedelta(days=self.rng.randint(*(notice or self.spec.notice_days)))
     day = min(max(day, self.start), self.end)
     while day.weekday() >= 5 and day < self.end:  # większość zmian dotyczy dni zajęć dziennych
@@ -60,6 +64,7 @@ class _Builder:
     return day
 
   def period(self, begin: dt.date) -> tuple[dt.date, dt.date, bool]:
+    """Okres krótki albo długi (`long_share`) od `begin`, przycięty do końca semestru."""
     long = self.rng.random() < self.spec.long_share
     days = self.rng.randint(*(self.spec.long_days if long else self.spec.short_days))
     return begin, min(begin + dt.timedelta(days=days - 1), self.end), long
@@ -67,6 +72,7 @@ class _Builder:
   # --- typy zdarzeń ---
 
   def roomUnavailable(self, ts):
+    """Blokada losowej sali: krótka (awaria, czasem tylko kilka godzin) albo długa (remont)."""
     room = self.rng.choice(self.ds.rooms)
     begin, end, long = self.period(self.effective(ts))
     payload = {"roomId": room.id, "from": begin, "to": end, "reason": "remont" if long else self.rng.choice(ROOM_REASONS)}
@@ -77,12 +83,14 @@ class _Builder:
     return payload
 
   def lecturerAbsent(self, ts):
+    """Nieobecność losowego prowadzącego z dostępnością: krótka albo długa."""
     lec = self.rng.choice([lec for lec in self.ds.lecturers if lec.availability])
     begin, end, long = self.period(self.effective(ts, (0, 3)))
     reason = "długie zwolnienie lekarskie" if long else self.rng.choice(ABSENCE_REASONS)
     return {"lecturerId": lec.id, "from": begin, "to": end, "reason": reason}
 
   def lecturerAvailabilityChanged(self, ts):
+    """Nowa dostępność prowadzącego z tych samych wzorców i w tych samych trybach studiów."""
     lec = self.rng.choice([lec for lec in self.ds.lecturers if lec.availability])
     weekend = any(a.day in ("So", "Nd") for a in lec.availability)
     weekday = any(a.day not in ("So", "Nd") for a in lec.availability)
@@ -93,6 +101,7 @@ class _Builder:
     return {"lecturerId": lec.id, "effectiveFrom": self.effective(ts, (7, 14)), "availability": [a.model_dump(mode="json") for a in new]}
 
   def groupSizeChanged(self, ts):
+    """Zmiana liczebności grupy (nie rocznika) o `size_change`, co najmniej 1 osoba."""
     g = self.rng.choice([g for g in self.ds.groups if g.kind != "cohort"])
     delta = self.rng.randint(*self.spec.size_change) * self.rng.choice([-1, 1])
     self.sizes[g.id] = max(1, self.sizes[g.id] + delta)
@@ -107,14 +116,17 @@ class _Builder:
     return make(n)
 
   def _mode(self, g: Group) -> str:
+    """Tryb studiów grupy (full-time / part-time)."""
     return next(p.study_mode for p in self.ds.programs if p.id == g.program_id)
 
   def _cohort(self, g: Group) -> Group:
+    """Rocznik (korzeń drzewa), do którego należy grupa."""
     while g.parent_id:
       g = self.groups[g.parent_id]
     return g
 
   def groupAdded(self, ts):
+    """Nowa grupa laboratoryjna pod losową grupą ćwiczeniową, z kopią zajęć grupy rodzeństwa."""
     ex = self.rng.choice([g for g in self.ds.groups if g.kind == "exercise"])
     cohort = self._cohort(ex)
     labs = [g for g in self.ds.groups if g.kind == "lab" and self._cohort(g).id == cohort.id]
@@ -127,6 +139,7 @@ class _Builder:
     return {"group": group.model_dump(mode="json"), "classes": [c.model_dump(mode="json") for c in classes]}
 
   def subjectAdded(self, ts):
+    """Przedmiot obieralny dla rocznika: wykład dla grup wykładowych i laboratorium dla grup lab."""
     cohort = self.rng.choice([g for g in self.ds.groups if g.kind == "cohort"])
     weekend = self._mode(cohort) == "part-time"
     # tylko kompetencje, które ma ktoś dostępny w dniach tego trybu studiów
@@ -143,6 +156,7 @@ class _Builder:
             "classes": [c.model_dump(mode="json") for c in classes]}
 
   def calendarExceptionAdded(self, ts):
+    """Dzień albo godziny rektorskie ogłoszone w trakcie semestru."""
     day = self.effective(ts, (3, 21))
     partial = self.rng.random() < 0.5
     exc = Rector(id=self._new_id(lambda n: f"zdarzenie-rektorskie-{n}"), type="rector", from_=day, to=day,
@@ -152,6 +166,7 @@ class _Builder:
 
 
 def _timestamps(spec: EventSpec, start: dt.date, end: dt.date, rng: random.Random) -> list[dt.datetime]:
+  """Czasy zdarzeń z procesu Poissona (`per_week`), w godzinach pracy, posortowane."""
   out = []
   t = dt.datetime.combine(start - dt.timedelta(days=spec.start_before_semester_days), dt.time())
   stop = dt.datetime.combine(end, dt.time())
@@ -164,6 +179,7 @@ def _timestamps(spec: EventSpec, start: dt.date, end: dt.date, rng: random.Rando
 
 
 def generate_events(ds: Dataset, preset: Preset, seed: int, *, errors: bool = True) -> EventStreamResult:
+  """Strumień zdarzeń spójny z `ds`; `errors=False` daje same poprawne zdarzenia."""
   spec = preset.events
   rng = random.Random(f"{seed}:events")
   builder = _Builder(ds, preset, rng)
@@ -188,6 +204,7 @@ def generate_events(ds: Dataset, preset: Preset, seed: int, *, errors: bool = Tr
 
 
 def _jsonable(obj):
+  """Zamienia daty na tekst ISO, żeby słownik przeszedł walidację jak linia z pliku."""
   if isinstance(obj, dict):
     return {k: _jsonable(v) for k, v in obj.items()}
   if isinstance(obj, list):
