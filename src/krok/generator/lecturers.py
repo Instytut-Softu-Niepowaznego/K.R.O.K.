@@ -20,6 +20,12 @@ def class_load(c: Class) -> float:
   return c.units_per_week * (1 if c.parity == "every" else 0.5)
 
 
+def peak_units(classes: list[Class]) -> int:
+  """Jednostki w gorszym tygodniu (A: every + A, B: every + B). Tak limit prowadzącego sprawdza reguła
+  limit-godzin-prowadzacego, więc limity dobieramy pod ten tydzień, a nie pod średnią."""
+  return max(sum(c.units_per_week for c in classes if c.parity in ("every", w)) for w in ("A", "B"))
+
+
 def available_minutes(lec: Lecturer, mode: str, config: Config) -> int:
   """Łączna dostępność prowadzącego w dniach danego trybu studiów (minuty w tygodniu)."""
   days = config.time_grid.days_by_study_mode[mode]
@@ -90,14 +96,14 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
   names = NameGenerator(rng)
   avg_limit = sum(spec.max_units_weekly) / 2
 
-  demand: dict[tuple[str, str], float] = defaultdict(float)
+  by_key: dict[tuple[str, str], list[Class]] = defaultdict(list)
   for c in classes:
-    demand[(subject_comp[c.subject_id], modes[c.id])] += class_load(c)
+    by_key[(subject_comp[c.subject_id], modes[c.id])].append(c)
+  demand: dict[tuple[str, str], int] = defaultdict(int, {key: peak_units(cs) for key, cs in by_key.items()})
   # Prowadzący nie mają dwóch zajęć naraz, więc ich łączna dostępność musi pokryć czas zajęć w gorszym tygodniu
   # (A lub B). Bez tego prowadzący spoza wydziału (1–2 dni) nie wyrabiali się z matematyką i fizyką.
   minutes_need: dict[tuple[str, str], int] = {}
-  for key in demand:
-    cs = [c for c in classes if (subject_comp[c.subject_id], modes[c.id]) == key]
+  for key, cs in by_key.items():
     minutes_need[key] = max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, config.time_grid)
                                 for c in cs if c.parity in ("every", w)) for w in ("A", "B"))
 

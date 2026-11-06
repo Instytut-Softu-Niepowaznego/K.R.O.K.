@@ -3,7 +3,7 @@
 Część przedmiotów (`lecturers.pool_share`) dostaje pule. Pula formy:
 - zawiera tylko prowadzących z kompetencją przedmiotu i niepustą dostępnością,
 - ma co najmniej jedną osobę dostępną w dni tygodnia i jedną w weekend, jeśli forma ma zajęcia dzienne/zaoczne,
-- ma łączny limit ≥ zapotrzebowanie formy × `slack` i łączną dostępność w każdym trybie ≥ czas zajęć × `slack`,
+- ma łączny limit ≥ zapotrzebowanie formy w gorszym tygodniu A/B × `slack` i łączną dostępność w każdym trybie ≥ czas zajęć × `slack`,
   o ile kandydatów starcza.
 Gdy tych warunków nie da się spełnić, forma zostaje bez puli (solver wybiera spośród wszystkich z kompetencją).
 """
@@ -15,7 +15,7 @@ from functools import cache
 from krok.model import Class, Config, Group, Lecturer, Program, Subject
 from krok.perception.measures import meeting_minutes
 
-from .lecturers import available_minutes, class_load, class_modes
+from .lecturers import available_minutes, class_modes, peak_units
 from .settings import Preset
 
 WEEKEND = ("So", "Nd")
@@ -29,13 +29,12 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
                 groups: list[Group], programs: list[Program], rng: random.Random) -> None:
   spec = preset.lecturers
   modes = class_modes(classes, groups, programs)
-  demand: dict[tuple[str, str], float] = defaultdict(float)
   form_modes: dict[tuple[str, str], set[str]] = defaultdict(set)
   by_form: dict[tuple[str, str], list[Class]] = defaultdict(list)
   for c in classes:
-    demand[(c.subject_id, c.form)] += class_load(c)
     form_modes[(c.subject_id, c.form)].add(modes[c.id])
     by_form[(c.subject_id, c.form)].append(c)
+  demand = {key: peak_units(cs) for key, cs in by_form.items()}  # jednostki w gorszym tygodniu A/B
 
   @cache
   def minutes(key: tuple[str, str], mode: str) -> int:

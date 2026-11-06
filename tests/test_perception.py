@@ -364,3 +364,15 @@ def test_cli_survives_legacy_console_encoding(tmp_path, args, code):
   result = subprocess.run([sys.executable, "-m", *argv], capture_output=True, env=env)
   assert result.returncode == code, result.stderr.decode("cp1252", "replace")[-300:]
   assert b"UnicodeEncodeError" not in result.stderr
+
+
+def test_blocks_do_not_leak_between_resource_types():
+  """Id są unikalne tylko w kolekcji: blokada grupy o id prowadzącego albo sali nie dotyka tych zasobów."""
+  ds = data()
+  lec = next(lec for lec in ds.lecturers if lec.availability)
+  room = ds.rooms[0]
+  ds.calendar.exceptions.append(full_block(ds, "g", group_ids=[lec.id, room.id]))
+  ds.calendar.exceptions.append(full_block(ds, "l", lecturer_ids=[room.id]))
+  state, report = analyze(ds)
+  assert state.lecturer_availability[lec.id] and state.room_availability[room.id]
+  assert report.verdict == "no-obstacles-found", [p.message for p in report.problems if p.severity == "error"]

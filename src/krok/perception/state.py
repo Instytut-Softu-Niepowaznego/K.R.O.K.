@@ -129,7 +129,9 @@ def build_state(ds: Dataset) -> EnvironmentState:
 
   # Blokady na cały semestr działają jak brak dostępności (model domeny, „Kalendarz semestru i wyjątki”).
   blocks = {"rooms": [], "lecturers": [], "groups": []}
-  cuts: dict[str, list[Interval]] = defaultdict(list)  # id → wycięte przedziały (każdego dnia)
+  # (rodzaj zasobu, id) → wycięte przedziały (każdego dnia). Id są unikalne tylko w obrębie kolekcji,
+  # więc blokada grupy nie może trafić do prowadzącego albo sali o tym samym id.
+  cuts: dict[tuple[str, str], list[Interval]] = defaultdict(list)
   for e in ds.calendar.exceptions:
     if not isinstance(e, ResourceBlock) or not _is_full_semester(e, ds):
       continue
@@ -137,15 +139,15 @@ def build_state(ds: Dataset) -> EnvironmentState:
     for key, ids in (("rooms", e.scope.room_ids), ("lecturers", e.scope.lecturer_ids),
                      ("groups", [d for g in e.scope.group_ids or [] for d in descendants(g)])):
       for i in ids or []:
-        cuts[i].append(cut)
+        cuts[(key, i)].append(cut)
         if cut[0] <= window[0] and cut[1] >= window[1]:  # obejmuje cały dzień zajęć
           blocks[key].append(i)
 
-  def available(base: dict[str, list[Interval]], rid: str) -> dict[str, list[Interval]]:
+  def available(base: dict[str, list[Interval]], key: str, rid: str) -> dict[str, list[Interval]]:
     out = {}
     for day, intervals in base.items():
       ivs = merge(clip(intervals, window))
-      for cut in cuts.get(rid, []):
+      for cut in cuts.get((key, rid), []):
         ivs = subtract(ivs, cut)
       if ivs:
         out[day] = ivs
@@ -156,8 +158,8 @@ def build_state(ds: Dataset) -> EnvironmentState:
     raw = defaultdict(list)
     for a in lec.availability:
       raw[a.day].append((to_minutes(a.from_), to_minutes(a.to)))
-    lecturer_av[lec.id] = available(raw, lec.id)
-  room_av = {r.id: available({d: [window] for d in grid.days}, r.id) for r in ds.rooms}
+    lecturer_av[lec.id] = available(raw, "lecturers", lec.id)
+  room_av = {r.id: available({d: [window] for d in grid.days}, "rooms", r.id) for r in ds.rooms}
 
   rooms_by_type = defaultdict(list)
   for r in sorted(ds.rooms, key=lambda r: (-r.capacity, r.id)):
