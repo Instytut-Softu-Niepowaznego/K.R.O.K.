@@ -321,3 +321,18 @@ def test_cli_replay_unreadable_file_is_exit_2(tmp_path, broken, capsys):
     path.mkdir()
   assert main(["replay", str(path)]) == 2
   assert "Nie można odczytać" in capsys.readouterr().err
+
+
+def test_cli_replay_closed_pipe_is_not_an_input_error(tmp_path):
+  """`krok-events replay … | head -1`: zamknięty potok to nie błąd odczytu pliku, więc bez komunikatu i z kodem 0."""
+  import subprocess
+  import sys
+  path = tmp_path / "zdarzenia.jsonl"
+  path.write_text("\n".join(_line(i, "2026-10-01T10:00:00") for i in range(30_000)) + "\n")  # więcej niż bufor potoku
+  proc = subprocess.Popen([sys.executable, "-m", "krok.events.cli", "replay", str(path)], stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+  assert proc.stdout.readline().startswith("✓".encode())
+  proc.stdout.close()  # jak head -1
+  err = proc.stderr.read()
+  assert proc.wait() == 0
+  assert b"Traceback" not in err and "Nie można odczytać".encode() not in err
