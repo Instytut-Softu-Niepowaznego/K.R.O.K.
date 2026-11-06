@@ -180,3 +180,81 @@ def test_ids_in_message_match_whole_ids():
   from krok.perception.quality import _ids_in
   assert "P-0001" in _ids_in("nieznane lecturers/P-0001") and "P-0001" not in _ids_in("nieznane lecturers/P-00011")
   assert "WJ-INF-inz-s1-C2" in _ids_in("rodzic WJ-INF-inz-s1-C2 z innego programu")
+
+
+# --- uwagi z recenzji (#33) ---
+
+def test_referenced_id_keeps_spaces_and_slashes():
+  from krok.perception.quality import _referenced_id
+  assert _referenced_id("nieznane rooms/P1-004") == "P1-004"
+  assert _referenced_id("nieznane rooms/P1 004 extra") == "P1 004 extra"
+  assert _referenced_id("nieznane rooms/P1/101") == "P1/101"  # stary format id sali
+  assert _referenced_id("nieznany typ sali lab-it") is None and _referenced_id(None) is None
+
+
+def test_group_block_from_event_is_attributed_to_events(tmp_path):
+  """calendarExceptionAdded z blokadą rocznika na cały semestr: przeszkoda ma przyczynę „zdarzenia”, nie „nieznana”."""
+  preset = load_preset("mini")
+  ds = generate(preset).dataset
+  write(generate(preset), tmp_path / "src")
+  cohort = next(g for g in ds.groups if g.kind == "cohort")
+  block = {"id": "blokada-rocznika", "type": "resourceBlock", "from": ds.calendar.semester_start.isoformat(),
+           "to": ds.calendar.semester_end.isoformat(), "scope": {"groupIds": [cohort.id]}, "label": "Blokada"}
+  line = json.dumps({"id": "E-1", "timestamp": "2026-09-30T10:00:00", "type": "calendarExceptionAdded",
+                     "payload": {"exception": block}})
+  engine = connect(tmp_path / "krok.db", create=True)
+  try:
+    import_dir(tmp_path / "src", engine)
+    apply_events(engine, [line])
+    f = build_quality_report(engine)["feasibility"]
+  finally:
+    engine.dispose()
+  assert f["byCode"].get("zablokowana-grupa") and f["causes"]["unexplained"] == 0
+  assert f["causes"]["events"] == f["errors"]
+
+
+def test_rejected_records_without_id_do_not_crash(tmp_path):
+  from krok.db import Issue
+  from krok.perception import analyze
+  from krok.perception.quality import NO_ID, _feasibility, _room_capacity
+  state, rep = analyze(generate(load_preset("edge-cases")).dataset)
+  issues = [Issue("lecturers.json", None, "missingField", "rejected", "id", "brak id"),
+            Issue("lecturers.json", "P-0099", "badReference", "rejected", None, "x"),
+            Issue("rooms.json", None, "missingField", "rejected", "capacity", "brak pojemności")]
+  f = _feasibility(rep, state, issues, [])
+  assert sum(f["causes"].values()) == f["errors"]
+  assert _room_capacity(issues)["rejected"] == [NO_ID]
+
+
+@pytest.mark.parametrize("option", ["--group-growth", "--coordinate-error-m"])
+@pytest.mark.parametrize("value", ["nan", "inf"])
+def test_cli_rejects_non_finite_parameters(tmp_path, option, value):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  assert main(["--data", str(tmp_path), option, value, "-q"]) == 2
+  assert not (tmp_path / "_quality.json").exists()
+
+
+@pytest.mark.parametrize("content", ["{zly", '{"a": 1}', '[{"file": "x"}]', '"tekst"'])
+def test_cli_invalid_noise_manifest_is_exit_2(tmp_path, content):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  (tmp_path / "zly.json").write_text(content)
+  assert main(["--data", str(tmp_path), "--noise-manifest", str(tmp_path / "zly.json"), "-q"]) == 2
+
+
+def test_cli_missing_explicit_manifest_is_exit_2_but_default_is_optional(tmp_path):
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0  # bez szumu: brak _noise.json
+  assert main(["--data", str(tmp_path), "-q"]) == 0
+  assert main(["--data", str(tmp_path), "--noise-manifest", str(tmp_path / "nie-ma.json"), "-q"]) == 2
+  assert main(["--data", str(tmp_path), "--events-manifest", str(tmp_path / "nie-ma.json"), "-q"]) == 2
+
+
+def test_load_manifests_accepts_both_noise_shapes(tmp_path):
+  entry = {"file": "rooms.json", "id": "P1-001", "kind": "outlier", "field": "capacity", "after": 0}
+  (tmp_path / "lista.json").write_text(json.dumps([entry]))
+  (tmp_path / "obiekt.json").write_text(json.dumps({"changes": [entry]}))
+  (tmp_path / "_events.json").write_text(json.dumps({"errorsList": [{"line": 3, "kind": "duplicate"}]}))
+  assert load_manifests(tmp_path / "lista.json", tmp_path / "_events.json") == ([entry], [{"line": 3, "kind": "duplicate"}])
+  assert load_manifests(tmp_path / "obiekt.json", None)[0] == [entry]

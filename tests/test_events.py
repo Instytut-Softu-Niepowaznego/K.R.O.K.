@@ -299,3 +299,14 @@ def test_cli_generate_from_noisy_data_is_exit_2(tmp_path, capsys):
   assert gen_main(["--preset", "mini", "--noise", "--out", str(tmp_path), "-q"]) == 0
   assert main(["generate", "--data", str(tmp_path), "-q"]) == 2
   assert "czystych danych" in capsys.readouterr().err
+
+
+def test_cli_generate_from_data_with_broken_references_is_exit_2(tmp_path, capsys):
+  """Wiszący parentId przechodzi walidację pojedynczych rekordów, ale generator zdarzeń chodzi po drzewie grup."""
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path), "-q"]) == 0
+  groups = json.loads((tmp_path / "groups.json").read_text())
+  next(g for g in groups if g["parentId"])["parentId"] = "NIE-MA"
+  (tmp_path / "groups.json").write_text(json.dumps(groups))
+  assert main(["generate", "--data", str(tmp_path), "-q"]) == 2
+  assert "spójności" in capsys.readouterr().err

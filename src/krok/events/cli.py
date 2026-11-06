@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from krok.console import safe_output
 from krok.generator import generate, load_preset, write
-from krok.model import dump_json, load_dataset
+from krok.model import dump_json, load_dataset, reference_errors
 
 from .generate import generate_events
 from .stream import replay
@@ -51,6 +51,11 @@ def _generate(args) -> int:
       return 2
     except (FileNotFoundError, json.JSONDecodeError) as e:
       print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
+      return 2
+    broken = reference_errors(ds)
+    if broken:  # np. wiszący parentId: generator zdarzeń chodzi po drzewie grup
+      print(f"Dane w {args.data} mają {len(broken)} błędów spójności, np. {broken[0]}. "
+            "Zdarzenia generuj z czystych danych.", file=sys.stderr)
       return 2
     seed = args.seed if args.seed is not None else meta.get("seed", preset.seed)
     out = args.out or args.data
