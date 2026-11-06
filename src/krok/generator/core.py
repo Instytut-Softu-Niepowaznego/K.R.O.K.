@@ -1,12 +1,12 @@
 """Złożenie całego wydziału z presetu."""
 
-import json
 import random
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from krok.model import Building, Config, Dataset, Room, dataset_from_files, dump_json, reference_errors, to_minutes
+from krok.model import Building, Config, Dataset, DatasetError, Room, dataset_from_files, dump_json, reference_errors, to_minutes
+from krok.model.dataset import read_json_file
 
 from . import edge_cases
 from .calendar import build_calendar
@@ -33,19 +33,27 @@ def _stream(seed: int, stage: str) -> random.Random:
   return random.Random(f"{seed}:{stage}")
 
 
-def _read_json(path: Path):
-  return json.loads(path.read_text(encoding="utf-8"))
+def _records(path: Path) -> list[dict]:
+  """Plik z listą rekordów (obiektów). Zły odczyt albo zły kształt → DatasetError."""
+  data = read_json_file(path)
+  if not isinstance(data, list) or not all(isinstance(r, dict) for r in data):
+    raise DatasetError(f"{path}: oczekiwano listy obiektów")
+  return data
 
 
 def load_base(preset: Preset, rng: random.Random, buildings_path: Path | None = None, rooms_path: Path | None = None):
+  """Ręczne dane bazowe: zasady, budynki i sale. Pusta lista sal jest dozwolona (#6), pusta lista budynków nie."""
   base = BASE_DATA_DIR / preset.base_data
-  config = Config.model_validate(_read_json(base / "config.json"))
-  buildings = [Building.model_validate(b) for b in _read_json(buildings_path or base / "buildings.json")]
+  config = Config.model_validate(read_json_file(base / "config.json"))
+  b_path = buildings_path or base / "buildings.json"
+  buildings = [Building.model_validate(b) for b in _records(b_path)]
+  if not buildings:
+    raise DatasetError(f"{b_path}: brak budynków, a prowadzący potrzebują budynku macierzystego")
   rooms = []
-  for raw in _read_json(rooms_path or base / "rooms.json"):
-    if raw.get("capacity") is None:
+  for raw in _records(rooms_path or base / "rooms.json"):
+    if raw.get("capacity") is None and raw.get("type") in preset.room_capacity:
       raw = {**raw, "capacity": rng.randint(*preset.room_capacity[raw["type"]])}
-    rooms.append(Room.model_validate(raw))
+    rooms.append(Room.model_validate(raw))  # nieznany typ bez pojemności: walidacja zgłosi brak capacity
   return config, buildings, rooms
 
 

@@ -38,7 +38,7 @@ Schematy to modele pydantic w `src/krok/model/events.py`: `parse_event(linia_alb
 
 ## Generator
 
-Zdarzenia przychodzą losowo (proces Poissona), średnio `events.per_week` na tydzień, od tygodnia przed semestrem do jego końca. Typy losowane są z wagami `events.weights`. Ustawienia są w sekcji `[events]` presetu (`src/krok/generator/settings.py`, `EventSpec`), a intensywność można nadpisać przez `--per-week`.
+Zdarzenia przychodzą losowo (proces Poissona), średnio `events.per_week` na tydzień, od tygodnia przed semestrem do jego końca. Typy losowane są z wagami `events.weights`. Ustawienia są w sekcji `[events]` presetu (`src/krok/generator/settings.py`, `EventSpec`), a intensywność można nadpisać przez `--per-week`. Intensywność musi być skończona i nie większa niż 10 000 zdarzeń na tydzień: przy nieskończonej odstępy między zdarzeniami wynosiłyby zero i generator nigdy by nie skończył.
 
 - Zdarzenia odwołują się do sal, prowadzących i grup z danych z #7. Nowe grupy i przedmioty dostają nowe, unikalne `id`.
 - Część blokad i nieobecności jest długa (`long_share`, 2–8 tygodni), reszta krótka (1–5 dni). Część blokad sal dotyczy tylko kilku godzin.
@@ -74,6 +74,6 @@ for item in replay("data/generated/kierunek/events.jsonl", speed=86400):
     ...
 ```
 
-- `speed`: sekundy symulacji na sekundę rzeczywistą. Bez `speed` iterator nie czeka. Przy cofniętym `timestamp` też nie czeka.
+- `speed`: sekundy symulacji na sekundę rzeczywistą. Bez `speed`, przy `0` i `inf` iterator nie czeka, przy cofniętym `timestamp` też nie. Ujemne albo `nan` to błąd (`ValueError`, w CLI kod 2).
 - `start` / `until` pomijają zdarzenia spoza zakresu czasu. Też muszą być bez strefy. Linie bez czytelnego czasu (albo z czasem ze strefą) zawsze przechodzą i nie wpływają na czekanie.
 - Iterator nie odrzuca błędnych linii, tylko je oznacza (`StreamItem.line`, `text`, `data`, `event`, `error`). Odwołań do danych, duplikatów i kolejności nie sprawdza, bo to zadanie percepcji (#9).

@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from krok.console import safe_output
+from krok.console import closed_pipe_safe, safe_output, write_outputs
 from krok.db import ImportFailed, apply_events, connect, db_path, import_dir
 from krok.model import dump_json
 
@@ -26,6 +26,7 @@ def _report(engine, args, noise_path, events_path) -> dict:
   return build_quality_report(engine, noise_manifest=noise, events_manifest=events, params=params)
 
 
+@closed_pipe_safe
 def main(argv: list[str] | None = None) -> int:
   """Punkt wejścia `krok-quality`; zwraca 0, a 2 przy złych danych lub argumentach."""
   safe_output()
@@ -104,9 +105,10 @@ def main(argv: list[str] | None = None) -> int:
 
   out = args.out or args.data
   if out:
-    out.mkdir(parents=True, exist_ok=True)
-    (out / REPORT_FILE).write_text(dump_json(report), encoding="utf-8")
-    (out / MARKDOWN_FILE).write_text(render_markdown(report) + "\n", encoding="utf-8")
+    failed = write_outputs(out, {REPORT_FILE: dump_json(report), MARKDOWN_FILE: render_markdown(report) + "\n"})
+    if failed:
+      print(failed, file=sys.stderr)
+      return 2
   if not args.quiet:
     print(render_text(report))
     if out:
