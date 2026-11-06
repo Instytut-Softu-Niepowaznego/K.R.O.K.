@@ -1,8 +1,8 @@
 [
   {
-    "id": "P1/101",
+    "id": "P1-001",
     "buildingId": "P1",
-    "number": "101",
+    "number": "001",
     "type": "lecture-hall",
     "capacity": 200,
     "facultyIds": [
@@ -10,169 +10,9 @@
     ]
   },
   {
-    "id": "P1/102",
+    "id": "P1-002",
     "buildingId": "P1",
-    "number": "102",
-    "type": "lecture-hall",
-    "capacity": 200,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/103",
-    "buildingId": "P1",
-    "number": "103",
-    "type": "lecture-hall",
-    "capacity": 120,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/104",
-    "buildingId": "P1",
-    "number": "104",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/105",
-    "buildingId": "P1",
-    "number": "105",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/106",
-    "buildingId": "P1",
-    "number": "106",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/107",
-    "buildingId": "P1",
-    "number": "107",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/108",
-    "buildingId": "P1",
-    "number": "108",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/201",
-    "buildingId": "P1",
-    "number": "201",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/202",
-    "buildingId": "P1",
-    "number": "202",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/203",
-    "buildingId": "P1",
-    "number": "203",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/204",
-    "buildingId": "P1",
-    "number": "204",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/205",
-    "buildingId": "P1",
-    "number": "205",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/206",
-    "buildingId": "P1",
-    "number": "206",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/207",
-    "buildingId": "P1",
-    "number": "207",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/208",
-    "buildingId": "P1",
-    "number": "208",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P1/301",
-    "buildingId": "P1",
-    "number": "301",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P2/101",
-    "buildingId": "P2",
-    "number": "101",
+    "number": "002",
     "type": "lecture-hall",
     "capacity": 150,
     "facultyIds": [
@@ -180,9 +20,19 @@
     ]
   },
   {
-    "id": "P2/102",
-    "buildingId": "P2",
-    "number": "102",
+    "id": "P1-003",
+    "buildingId": "P1",
+    "number": "003",
+    "type": "lecture-hall",
+    "capacity": 120,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-004",
+    "buildingId": "P1",
+    "number": "004",
     "type": "classroom",
     "capacity": 32,
     "facultyIds": [
@@ -190,9 +40,39 @@
     ]
   },
   {
-    "id": "P2/103",
-    "buildingId": "P2",
-    "number": "103",
+    "id": "P1-005",
+    "buildingId": "P1",
+    "number": "005",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-006",
+    "buildingId": "P1",
+    "number": "006",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-007",
+    "buildingId": "P1",
+    "number": "007",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-008",
+    "buildingId": "P1",
+    "number": "008",
     "type": "classroom",
     "capacity": 32,
     "facultyIds": [
@@ -200,9 +80,9 @@
     ]
   },
   {
-    "id": "P2/104",
-    "buildingId": "P2",
-    "number": "104",
+    "id": "P1-009",
+    "buildingId": "P1",
+    "number": "009",
     "type": "classroom",
     "capacity": 32,
     "facultyIds": [
@@ -210,39 +90,9 @@
     ]
   },
   {
-    "id": "P2/105",
-    "buildingId": "P2",
-    "number": "105",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P2/106",
-    "buildingId": "P2",
-    "number": "106",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P2/107",
-    "buildingId": "P2",
-    "number": "107",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P2/108",
-    "buildingId": "P2",
-    "number": "108",
+    "id": "P1-010",
+    "buildingId": "P1",
+    "number": "010",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -250,9 +100,9 @@
     ]
   },
   {
-    "id": "P2/201",
-    "buildingId": "P2",
-    "number": "201",
+    "id": "P1-011",
+    "buildingId": "P1",
+    "number": "011",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -260,9 +110,9 @@
     ]
   },
   {
-    "id": "P2/202",
-    "buildingId": "P2",
-    "number": "202",
+    "id": "P1-012",
+    "buildingId": "P1",
+    "number": "012",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -270,9 +120,9 @@
     ]
   },
   {
-    "id": "P2/203",
-    "buildingId": "P2",
-    "number": "203",
+    "id": "P1-013",
+    "buildingId": "P1",
+    "number": "013",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -280,9 +130,9 @@
     ]
   },
   {
-    "id": "P2/204",
-    "buildingId": "P2",
-    "number": "204",
+    "id": "P1-014",
+    "buildingId": "P1",
+    "number": "014",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -290,9 +140,9 @@
     ]
   },
   {
-    "id": "P2/205",
-    "buildingId": "P2",
-    "number": "205",
+    "id": "P1-015",
+    "buildingId": "P1",
+    "number": "015",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -300,28 +150,8 @@
     ]
   },
   {
-    "id": "P2/206",
-    "buildingId": "P2",
-    "number": "206",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P2/207",
-    "buildingId": "P2",
-    "number": "207",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P3/101",
-    "buildingId": "P3",
+    "id": "P1-101",
+    "buildingId": "P1",
     "number": "101",
     "type": "lecture-hall",
     "capacity": 100,
@@ -330,18 +160,18 @@
     ]
   },
   {
-    "id": "P3/102",
-    "buildingId": "P3",
+    "id": "P1-102",
+    "buildingId": "P1",
     "number": "102",
     "type": "classroom",
-    "capacity": 30,
+    "capacity": 24,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/103",
-    "buildingId": "P3",
+    "id": "P1-103",
+    "buildingId": "P1",
     "number": "103",
     "type": "classroom",
     "capacity": 30,
@@ -350,29 +180,129 @@
     ]
   },
   {
-    "id": "P3/104",
-    "buildingId": "P3",
+    "id": "P1-104",
+    "buildingId": "P1",
     "number": "104",
     "type": "classroom",
-    "capacity": 30,
+    "capacity": 40,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/105",
-    "buildingId": "P3",
+    "id": "P1-105",
+    "buildingId": "P1",
     "number": "105",
     "type": "classroom",
-    "capacity": 30,
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/106",
-    "buildingId": "P3",
+    "id": "P1-106",
+    "buildingId": "P1",
     "number": "106",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-107",
+    "buildingId": "P1",
+    "number": "107",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-108",
+    "buildingId": "P1",
+    "number": "108",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-109",
+    "buildingId": "P1",
+    "number": "109",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-110",
+    "buildingId": "P1",
+    "number": "110",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-111",
+    "buildingId": "P1",
+    "number": "111",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-112",
+    "buildingId": "P1",
+    "number": "112",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-113",
+    "buildingId": "P1",
+    "number": "113",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-114",
+    "buildingId": "P1",
+    "number": "114",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-115",
+    "buildingId": "P1",
+    "number": "115",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-201",
+    "buildingId": "P1",
+    "number": "201",
     "type": "classroom",
     "capacity": 30,
     "facultyIds": [
@@ -380,98 +310,68 @@
     ]
   },
   {
-    "id": "P3/107",
-    "buildingId": "P3",
-    "number": "107",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P3/108",
-    "buildingId": "P3",
-    "number": "108",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P3/201",
-    "buildingId": "P3",
-    "number": "201",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P3/202",
-    "buildingId": "P3",
+    "id": "P1-202",
+    "buildingId": "P1",
     "number": "202",
-    "type": "lab-electronics",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 40,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/203",
-    "buildingId": "P3",
+    "id": "P1-203",
+    "buildingId": "P1",
     "number": "203",
-    "type": "lab-electronics",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/204",
-    "buildingId": "P3",
+    "id": "P1-204",
+    "buildingId": "P1",
     "number": "204",
-    "type": "lab-electronics",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/205",
-    "buildingId": "P3",
+    "id": "P1-205",
+    "buildingId": "P1",
     "number": "205",
-    "type": "lab-it",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 24,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/206",
-    "buildingId": "P3",
+    "id": "P1-206",
+    "buildingId": "P1",
     "number": "206",
-    "type": "lab-it",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 30,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/207",
-    "buildingId": "P3",
+    "id": "P1-207",
+    "buildingId": "P1",
     "number": "207",
-    "type": "lab-it",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 40,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P3/208",
-    "buildingId": "P3",
+    "id": "P1-208",
+    "buildingId": "P1",
     "number": "208",
     "type": "lab-it",
     "capacity": 16,
@@ -480,119 +380,9 @@
     ]
   },
   {
-    "id": "P4/101",
-    "buildingId": "P4",
-    "number": "101",
-    "type": "lecture-hall",
-    "capacity": 120,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/102",
-    "buildingId": "P4",
-    "number": "102",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/103",
-    "buildingId": "P4",
-    "number": "103",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/104",
-    "buildingId": "P4",
-    "number": "104",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/105",
-    "buildingId": "P4",
-    "number": "105",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/106",
-    "buildingId": "P4",
-    "number": "106",
-    "type": "classroom",
-    "capacity": 32,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/107",
-    "buildingId": "P4",
-    "number": "107",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/108",
-    "buildingId": "P4",
-    "number": "108",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/201",
-    "buildingId": "P4",
-    "number": "201",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/202",
-    "buildingId": "P4",
-    "number": "202",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/203",
-    "buildingId": "P4",
-    "number": "203",
-    "type": "lab-electronics",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P4/204",
-    "buildingId": "P4",
-    "number": "204",
+    "id": "P1-209",
+    "buildingId": "P1",
+    "number": "209",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -600,9 +390,9 @@
     ]
   },
   {
-    "id": "P4/205",
-    "buildingId": "P4",
-    "number": "205",
+    "id": "P1-210",
+    "buildingId": "P1",
+    "number": "210",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -610,9 +400,9 @@
     ]
   },
   {
-    "id": "P4/206",
-    "buildingId": "P4",
-    "number": "206",
+    "id": "P1-211",
+    "buildingId": "P1",
+    "number": "211",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -620,9 +410,9 @@
     ]
   },
   {
-    "id": "P4/207",
-    "buildingId": "P4",
-    "number": "207",
+    "id": "P1-212",
+    "buildingId": "P1",
+    "number": "212",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -630,9 +420,189 @@
     ]
   },
   {
-    "id": "P5/101",
-    "buildingId": "P5",
-    "number": "101",
+    "id": "P1-213",
+    "buildingId": "P1",
+    "number": "213",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-214",
+    "buildingId": "P1",
+    "number": "214",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-215",
+    "buildingId": "P1",
+    "number": "215",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-301",
+    "buildingId": "P1",
+    "number": "301",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-302",
+    "buildingId": "P1",
+    "number": "302",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-303",
+    "buildingId": "P1",
+    "number": "303",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-304",
+    "buildingId": "P1",
+    "number": "304",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-305",
+    "buildingId": "P1",
+    "number": "305",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-306",
+    "buildingId": "P1",
+    "number": "306",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-307",
+    "buildingId": "P1",
+    "number": "307",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-308",
+    "buildingId": "P1",
+    "number": "308",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-309",
+    "buildingId": "P1",
+    "number": "309",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-310",
+    "buildingId": "P1",
+    "number": "310",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-311",
+    "buildingId": "P1",
+    "number": "311",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-312",
+    "buildingId": "P1",
+    "number": "312",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-313",
+    "buildingId": "P1",
+    "number": "313",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-314",
+    "buildingId": "P1",
+    "number": "314",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P1-315",
+    "buildingId": "P1",
+    "number": "315",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-001",
+    "buildingId": "P2",
+    "number": "001",
     "type": "lecture-hall",
     "capacity": 90,
     "facultyIds": [
@@ -640,8 +610,158 @@
     ]
   },
   {
-    "id": "P5/102",
-    "buildingId": "P5",
+    "id": "P2-002",
+    "buildingId": "P2",
+    "number": "002",
+    "type": "lecture-hall",
+    "capacity": 200,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-003",
+    "buildingId": "P2",
+    "number": "003",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-004",
+    "buildingId": "P2",
+    "number": "004",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-005",
+    "buildingId": "P2",
+    "number": "005",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-006",
+    "buildingId": "P2",
+    "number": "006",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-007",
+    "buildingId": "P2",
+    "number": "007",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-008",
+    "buildingId": "P2",
+    "number": "008",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-009",
+    "buildingId": "P2",
+    "number": "009",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-010",
+    "buildingId": "P2",
+    "number": "010",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-011",
+    "buildingId": "P2",
+    "number": "011",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-012",
+    "buildingId": "P2",
+    "number": "012",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-013",
+    "buildingId": "P2",
+    "number": "013",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-014",
+    "buildingId": "P2",
+    "number": "014",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-015",
+    "buildingId": "P2",
+    "number": "015",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-101",
+    "buildingId": "P2",
+    "number": "101",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-102",
+    "buildingId": "P2",
     "number": "102",
     "type": "classroom",
     "capacity": 40,
@@ -650,29 +770,49 @@
     ]
   },
   {
-    "id": "P5/103",
-    "buildingId": "P5",
+    "id": "P2-103",
+    "buildingId": "P2",
     "number": "103",
     "type": "classroom",
-    "capacity": 40,
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P5/104",
-    "buildingId": "P5",
+    "id": "P2-104",
+    "buildingId": "P2",
     "number": "104",
     "type": "classroom",
-    "capacity": 40,
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P5/105",
-    "buildingId": "P5",
+    "id": "P2-105",
+    "buildingId": "P2",
     "number": "105",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-106",
+    "buildingId": "P2",
+    "number": "106",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-107",
+    "buildingId": "P2",
+    "number": "107",
     "type": "classroom",
     "capacity": 40,
     "facultyIds": [
@@ -680,28 +820,8 @@
     ]
   },
   {
-    "id": "P5/106",
-    "buildingId": "P5",
-    "number": "106",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P5/107",
-    "buildingId": "P5",
-    "number": "107",
-    "type": "lab-it",
-    "capacity": 16,
-    "facultyIds": [
-      "WJ"
-    ]
-  },
-  {
-    "id": "P5/108",
-    "buildingId": "P5",
+    "id": "P2-108",
+    "buildingId": "P2",
     "number": "108",
     "type": "lab-it",
     "capacity": 16,
@@ -710,29 +830,149 @@
     ]
   },
   {
-    "id": "P5/201",
-    "buildingId": "P5",
+    "id": "P2-109",
+    "buildingId": "P2",
+    "number": "109",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-110",
+    "buildingId": "P2",
+    "number": "110",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-111",
+    "buildingId": "P2",
+    "number": "111",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-112",
+    "buildingId": "P2",
+    "number": "112",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-113",
+    "buildingId": "P2",
+    "number": "113",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-114",
+    "buildingId": "P2",
+    "number": "114",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-115",
+    "buildingId": "P2",
+    "number": "115",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-201",
+    "buildingId": "P2",
     "number": "201",
-    "type": "lab-it",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P5/202",
-    "buildingId": "P5",
+    "id": "P2-202",
+    "buildingId": "P2",
     "number": "202",
-    "type": "lab-it",
-    "capacity": 16,
+    "type": "classroom",
+    "capacity": 32,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P5/203",
-    "buildingId": "P5",
+    "id": "P2-203",
+    "buildingId": "P2",
     "number": "203",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-204",
+    "buildingId": "P2",
+    "number": "204",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-205",
+    "buildingId": "P2",
+    "number": "205",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-206",
+    "buildingId": "P2",
+    "number": "206",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-207",
+    "buildingId": "P2",
+    "number": "207",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-208",
+    "buildingId": "P2",
+    "number": "208",
     "type": "lab-it",
     "capacity": 16,
     "facultyIds": [
@@ -740,8 +980,978 @@
     ]
   },
   {
-    "id": "P6/101",
-    "buildingId": "P6",
+    "id": "P2-209",
+    "buildingId": "P2",
+    "number": "209",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-210",
+    "buildingId": "P2",
+    "number": "210",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-211",
+    "buildingId": "P2",
+    "number": "211",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-212",
+    "buildingId": "P2",
+    "number": "212",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-213",
+    "buildingId": "P2",
+    "number": "213",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-214",
+    "buildingId": "P2",
+    "number": "214",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-215",
+    "buildingId": "P2",
+    "number": "215",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-301",
+    "buildingId": "P2",
+    "number": "301",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-302",
+    "buildingId": "P2",
+    "number": "302",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-303",
+    "buildingId": "P2",
+    "number": "303",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-304",
+    "buildingId": "P2",
+    "number": "304",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-305",
+    "buildingId": "P2",
+    "number": "305",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-306",
+    "buildingId": "P2",
+    "number": "306",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-307",
+    "buildingId": "P2",
+    "number": "307",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-308",
+    "buildingId": "P2",
+    "number": "308",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-309",
+    "buildingId": "P2",
+    "number": "309",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-310",
+    "buildingId": "P2",
+    "number": "310",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-311",
+    "buildingId": "P2",
+    "number": "311",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-312",
+    "buildingId": "P2",
+    "number": "312",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-313",
+    "buildingId": "P2",
+    "number": "313",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-314",
+    "buildingId": "P2",
+    "number": "314",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P2-315",
+    "buildingId": "P2",
+    "number": "315",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-001",
+    "buildingId": "P3",
+    "number": "001",
+    "type": "lecture-hall",
+    "capacity": 150,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-002",
+    "buildingId": "P3",
+    "number": "002",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-003",
+    "buildingId": "P3",
+    "number": "003",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-004",
+    "buildingId": "P3",
+    "number": "004",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-005",
+    "buildingId": "P3",
+    "number": "005",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-006",
+    "buildingId": "P3",
+    "number": "006",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-007",
+    "buildingId": "P3",
+    "number": "007",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-008",
+    "buildingId": "P3",
+    "number": "008",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-009",
+    "buildingId": "P3",
+    "number": "009",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-010",
+    "buildingId": "P3",
+    "number": "010",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-011",
+    "buildingId": "P3",
+    "number": "011",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-012",
+    "buildingId": "P3",
+    "number": "012",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-013",
+    "buildingId": "P3",
+    "number": "013",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-014",
+    "buildingId": "P3",
+    "number": "014",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-015",
+    "buildingId": "P3",
+    "number": "015",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-101",
+    "buildingId": "P3",
+    "number": "101",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-102",
+    "buildingId": "P3",
+    "number": "102",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-103",
+    "buildingId": "P3",
+    "number": "103",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-104",
+    "buildingId": "P3",
+    "number": "104",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-105",
+    "buildingId": "P3",
+    "number": "105",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-106",
+    "buildingId": "P3",
+    "number": "106",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-107",
+    "buildingId": "P3",
+    "number": "107",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-108",
+    "buildingId": "P3",
+    "number": "108",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-109",
+    "buildingId": "P3",
+    "number": "109",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-110",
+    "buildingId": "P3",
+    "number": "110",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-111",
+    "buildingId": "P3",
+    "number": "111",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-112",
+    "buildingId": "P3",
+    "number": "112",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-113",
+    "buildingId": "P3",
+    "number": "113",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-114",
+    "buildingId": "P3",
+    "number": "114",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-115",
+    "buildingId": "P3",
+    "number": "115",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-201",
+    "buildingId": "P3",
+    "number": "201",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-202",
+    "buildingId": "P3",
+    "number": "202",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-203",
+    "buildingId": "P3",
+    "number": "203",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-204",
+    "buildingId": "P3",
+    "number": "204",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-205",
+    "buildingId": "P3",
+    "number": "205",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-206",
+    "buildingId": "P3",
+    "number": "206",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-207",
+    "buildingId": "P3",
+    "number": "207",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-208",
+    "buildingId": "P3",
+    "number": "208",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-209",
+    "buildingId": "P3",
+    "number": "209",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-210",
+    "buildingId": "P3",
+    "number": "210",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-211",
+    "buildingId": "P3",
+    "number": "211",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-212",
+    "buildingId": "P3",
+    "number": "212",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-213",
+    "buildingId": "P3",
+    "number": "213",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-214",
+    "buildingId": "P3",
+    "number": "214",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-215",
+    "buildingId": "P3",
+    "number": "215",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-301",
+    "buildingId": "P3",
+    "number": "301",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-302",
+    "buildingId": "P3",
+    "number": "302",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-303",
+    "buildingId": "P3",
+    "number": "303",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-304",
+    "buildingId": "P3",
+    "number": "304",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-305",
+    "buildingId": "P3",
+    "number": "305",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-306",
+    "buildingId": "P3",
+    "number": "306",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-307",
+    "buildingId": "P3",
+    "number": "307",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-308",
+    "buildingId": "P3",
+    "number": "308",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-309",
+    "buildingId": "P3",
+    "number": "309",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-310",
+    "buildingId": "P3",
+    "number": "310",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-311",
+    "buildingId": "P3",
+    "number": "311",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-312",
+    "buildingId": "P3",
+    "number": "312",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-313",
+    "buildingId": "P3",
+    "number": "313",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-314",
+    "buildingId": "P3",
+    "number": "314",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P3-315",
+    "buildingId": "P3",
+    "number": "315",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-001",
+    "buildingId": "P5",
+    "number": "001",
+    "type": "lecture-hall",
+    "capacity": 120,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-002",
+    "buildingId": "P5",
+    "number": "002",
+    "type": "lecture-hall",
+    "capacity": 100,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-003",
+    "buildingId": "P5",
+    "number": "003",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-004",
+    "buildingId": "P5",
+    "number": "004",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-005",
+    "buildingId": "P5",
+    "number": "005",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-006",
+    "buildingId": "P5",
+    "number": "006",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-007",
+    "buildingId": "P5",
+    "number": "007",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-008",
+    "buildingId": "P5",
+    "number": "008",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-009",
+    "buildingId": "P5",
+    "number": "009",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-010",
+    "buildingId": "P5",
+    "number": "010",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-011",
+    "buildingId": "P5",
+    "number": "011",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-012",
+    "buildingId": "P5",
+    "number": "012",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-013",
+    "buildingId": "P5",
+    "number": "013",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-014",
+    "buildingId": "P5",
+    "number": "014",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-015",
+    "buildingId": "P5",
+    "number": "015",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-101",
+    "buildingId": "P5",
     "number": "101",
     "type": "classroom",
     "capacity": 24,
@@ -750,7 +1960,607 @@
     ]
   },
   {
-    "id": "P6/102",
+    "id": "P5-102",
+    "buildingId": "P5",
+    "number": "102",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-103",
+    "buildingId": "P5",
+    "number": "103",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-104",
+    "buildingId": "P5",
+    "number": "104",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-105",
+    "buildingId": "P5",
+    "number": "105",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-106",
+    "buildingId": "P5",
+    "number": "106",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-107",
+    "buildingId": "P5",
+    "number": "107",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-108",
+    "buildingId": "P5",
+    "number": "108",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-109",
+    "buildingId": "P5",
+    "number": "109",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-110",
+    "buildingId": "P5",
+    "number": "110",
+    "type": "lab-electronics",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-111",
+    "buildingId": "P5",
+    "number": "111",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-112",
+    "buildingId": "P5",
+    "number": "112",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-113",
+    "buildingId": "P5",
+    "number": "113",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-114",
+    "buildingId": "P5",
+    "number": "114",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-115",
+    "buildingId": "P5",
+    "number": "115",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-201",
+    "buildingId": "P5",
+    "number": "201",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-202",
+    "buildingId": "P5",
+    "number": "202",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-203",
+    "buildingId": "P5",
+    "number": "203",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-204",
+    "buildingId": "P5",
+    "number": "204",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-205",
+    "buildingId": "P5",
+    "number": "205",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-206",
+    "buildingId": "P5",
+    "number": "206",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-207",
+    "buildingId": "P5",
+    "number": "207",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-208",
+    "buildingId": "P5",
+    "number": "208",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-209",
+    "buildingId": "P5",
+    "number": "209",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-210",
+    "buildingId": "P5",
+    "number": "210",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-211",
+    "buildingId": "P5",
+    "number": "211",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-212",
+    "buildingId": "P5",
+    "number": "212",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-213",
+    "buildingId": "P5",
+    "number": "213",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-214",
+    "buildingId": "P5",
+    "number": "214",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-215",
+    "buildingId": "P5",
+    "number": "215",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-301",
+    "buildingId": "P5",
+    "number": "301",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-302",
+    "buildingId": "P5",
+    "number": "302",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-303",
+    "buildingId": "P5",
+    "number": "303",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-304",
+    "buildingId": "P5",
+    "number": "304",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-305",
+    "buildingId": "P5",
+    "number": "305",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-306",
+    "buildingId": "P5",
+    "number": "306",
+    "type": "classroom",
+    "capacity": 40,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-307",
+    "buildingId": "P5",
+    "number": "307",
+    "type": "classroom",
+    "capacity": 32,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-308",
+    "buildingId": "P5",
+    "number": "308",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-309",
+    "buildingId": "P5",
+    "number": "309",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-310",
+    "buildingId": "P5",
+    "number": "310",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-311",
+    "buildingId": "P5",
+    "number": "311",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-312",
+    "buildingId": "P5",
+    "number": "312",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-313",
+    "buildingId": "P5",
+    "number": "313",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-314",
+    "buildingId": "P5",
+    "number": "314",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P5-315",
+    "buildingId": "P5",
+    "number": "315",
+    "type": "lab-it",
+    "capacity": 16,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-001",
+    "buildingId": "P6",
+    "number": "001",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-002",
+    "buildingId": "P6",
+    "number": "002",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-003",
+    "buildingId": "P6",
+    "number": "003",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-004",
+    "buildingId": "P6",
+    "number": "004",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-005",
+    "buildingId": "P6",
+    "number": "005",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-006",
+    "buildingId": "P6",
+    "number": "006",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-007",
+    "buildingId": "P6",
+    "number": "007",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-008",
+    "buildingId": "P6",
+    "number": "008",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-009",
+    "buildingId": "P6",
+    "number": "009",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-010",
+    "buildingId": "P6",
+    "number": "010",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-011",
+    "buildingId": "P6",
+    "number": "011",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-012",
+    "buildingId": "P6",
+    "number": "012",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-013",
+    "buildingId": "P6",
+    "number": "013",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-014",
+    "buildingId": "P6",
+    "number": "014",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-015",
+    "buildingId": "P6",
+    "number": "015",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-101",
+    "buildingId": "P6",
+    "number": "101",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-102",
     "buildingId": "P6",
     "number": "102",
     "type": "classroom",
@@ -760,17 +2570,17 @@
     ]
   },
   {
-    "id": "P6/103",
+    "id": "P6-103",
     "buildingId": "P6",
     "number": "103",
     "type": "classroom",
-    "capacity": 24,
+    "capacity": 30,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P6/104",
+    "id": "P6-104",
     "buildingId": "P6",
     "number": "104",
     "type": "classroom",
@@ -780,17 +2590,17 @@
     ]
   },
   {
-    "id": "P6/105",
+    "id": "P6-105",
     "buildingId": "P6",
     "number": "105",
     "type": "classroom",
-    "capacity": 24,
+    "capacity": 30,
     "facultyIds": [
       "WJ"
     ]
   },
   {
-    "id": "P6/106",
+    "id": "P6-106",
     "buildingId": "P6",
     "number": "106",
     "type": "classroom",
@@ -800,9 +2610,19 @@
     ]
   },
   {
-    "id": "P6/107",
+    "id": "P6-107",
     "buildingId": "P6",
     "number": "107",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-108",
+    "buildingId": "P6",
+    "number": "108",
     "type": "classroom",
     "capacity": 24,
     "facultyIds": [
@@ -810,11 +2630,371 @@
     ]
   },
   {
-    "id": "P6/108",
+    "id": "P6-109",
     "buildingId": "P6",
-    "number": "108",
+    "number": "109",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-110",
+    "buildingId": "P6",
+    "number": "110",
     "type": "classroom",
     "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-111",
+    "buildingId": "P6",
+    "number": "111",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-112",
+    "buildingId": "P6",
+    "number": "112",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-113",
+    "buildingId": "P6",
+    "number": "113",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-114",
+    "buildingId": "P6",
+    "number": "114",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-115",
+    "buildingId": "P6",
+    "number": "115",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-201",
+    "buildingId": "P6",
+    "number": "201",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-202",
+    "buildingId": "P6",
+    "number": "202",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-203",
+    "buildingId": "P6",
+    "number": "203",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-204",
+    "buildingId": "P6",
+    "number": "204",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-205",
+    "buildingId": "P6",
+    "number": "205",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-206",
+    "buildingId": "P6",
+    "number": "206",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-207",
+    "buildingId": "P6",
+    "number": "207",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-208",
+    "buildingId": "P6",
+    "number": "208",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-209",
+    "buildingId": "P6",
+    "number": "209",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-210",
+    "buildingId": "P6",
+    "number": "210",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-211",
+    "buildingId": "P6",
+    "number": "211",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-212",
+    "buildingId": "P6",
+    "number": "212",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-213",
+    "buildingId": "P6",
+    "number": "213",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-214",
+    "buildingId": "P6",
+    "number": "214",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-215",
+    "buildingId": "P6",
+    "number": "215",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-301",
+    "buildingId": "P6",
+    "number": "301",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-302",
+    "buildingId": "P6",
+    "number": "302",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-303",
+    "buildingId": "P6",
+    "number": "303",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-304",
+    "buildingId": "P6",
+    "number": "304",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-305",
+    "buildingId": "P6",
+    "number": "305",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-306",
+    "buildingId": "P6",
+    "number": "306",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-307",
+    "buildingId": "P6",
+    "number": "307",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-308",
+    "buildingId": "P6",
+    "number": "308",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-309",
+    "buildingId": "P6",
+    "number": "309",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-310",
+    "buildingId": "P6",
+    "number": "310",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-311",
+    "buildingId": "P6",
+    "number": "311",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-312",
+    "buildingId": "P6",
+    "number": "312",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-313",
+    "buildingId": "P6",
+    "number": "313",
+    "type": "classroom",
+    "capacity": 30,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-314",
+    "buildingId": "P6",
+    "number": "314",
+    "type": "classroom",
+    "capacity": 24,
+    "facultyIds": [
+      "WJ"
+    ]
+  },
+  {
+    "id": "P6-315",
+    "buildingId": "P6",
+    "number": "315",
+    "type": "classroom",
+    "capacity": 30,
     "facultyIds": [
       "WJ"
     ]

@@ -4,17 +4,20 @@ import argparse
 import sys
 from pathlib import Path
 
+from krok.console import safe_output
+
 from .core import generate, summary, write
 from .settings import list_presets, load_preset
 
 
 def main(argv: list[str] | None = None) -> int:
+  safe_output()
   p = argparse.ArgumentParser(prog="krok-gen", description="Generator danych wydziału (K.R.O.K. #7)")
   p.add_argument("--preset", default="mini", help="nazwa presetu albo ścieżka do pliku .toml (domyślnie: mini)")
   p.add_argument("--seed", type=int, help="ziarno losowania (domyślnie z presetu)")
   p.add_argument("--out", type=Path, help="katalog wyjściowy (domyślnie data/generated/<preset>)")
-  p.add_argument("--buildings", type=Path, help="inny plik buildings.json (np. z #6)")
-  p.add_argument("--rooms", type=Path, help="inny plik rooms.json (np. z #6)")
+  p.add_argument("--buildings", type=Path, help="inny plik buildings.json")
+  p.add_argument("--rooms", type=Path, help="inny plik rooms.json")
   p.add_argument("--edge-cases", action=argparse.BooleanOptionalAction, help="wymuś włączenie/wyłączenie przypadków brzegowych")
   p.add_argument("--noise", action=argparse.BooleanOptionalAction, help="wymuś włączenie/wyłączenie szumu")
   p.add_argument("--list", action="store_true", help="wypisz dostępne presety")

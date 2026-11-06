@@ -6,6 +6,7 @@ import json
 import sys
 from pathlib import Path
 
+from krok.console import safe_output
 from krok.generator import generate, load_preset, write
 from krok.model import dump_json, load_dataset
 
@@ -76,6 +77,7 @@ def _replay(args) -> int:
 
 def main(argv: list[str] | None = None) -> int:
   """Punkt wejścia `krok-events`; zwraca kod wyjścia (0 = sukces, 2 = złe argumenty)."""
+  safe_output()
   p = argparse.ArgumentParser(prog="krok-events", description="Strumień zdarzeń z otoczenia (K.R.O.K. #8)")
   sub = p.add_subparsers(dest="command", required=True)
 

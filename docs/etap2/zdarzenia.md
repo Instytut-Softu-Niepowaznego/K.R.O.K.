@@ -15,7 +15,7 @@ Plik `events.jsonl`, jedna linia = jedno zdarzenie:
 
 ```json
 {"id": "E-0002", "timestamp": "2026-09-25T15:20:00", "type": "roomUnavailable",
- "payload": {"roomId": "P1/102", "from": "2026-10-05", "to": "2026-11-15", "fromTime": null, "toTime": null, "reason": "remont"}}
+ "payload": {"roomId": "P1-102", "from": "2026-10-05", "to": "2026-11-15", "fromTime": null, "toTime": null, "reason": "remont"}}
 ```
 
 - `id`: unikalny identyfikator zdarzenia. Pozwala wykryć duplikaty i odwołać się do zdarzenia w raporcie (np. `changedUnaffected` w [kryteriach](../etap1/kryteria.md)).

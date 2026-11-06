@@ -9,7 +9,7 @@
 [[competence]]
 id = "matematyka"
 external = true
-home_buildings = ["P4"]
+home_buildings = ["P1"]
 
 [[competence]]
 id = "fizyka"
@@ -59,11 +59,11 @@ home_buildings = ["P2"]
 
 [[competence]]
 id = "elektronika"
-home_buildings = ["P3", "P4"]
+home_buildings = ["P3"]
 
 [[competence]]
 id = "automatyka"
-home_buildings = ["P4"]
+home_buildings = ["P3"]
 
 [[competence]]
 id = "telekomunikacja"

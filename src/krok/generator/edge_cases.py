@@ -9,7 +9,10 @@ from dataclasses import dataclass, field
 
 from krok.model import Availability, Calendar, Class, DayOverride, Group, Holiday, Lecturer, Rector, ResourceBlock, Room, Scope, Subject
 
-from .lecturers import class_modes
+from .lecturers import class_modes, peak_units
+
+
+week_units = peak_units  # jednostki w gorszym tygodniu A/B
 
 
 @dataclass
@@ -53,7 +56,7 @@ class World:
     for (sid, form), cs in by_key.items():
       if (not sid.startswith("EDGE") and (sid, form) not in self.taken_forms
           and all(c.lecturer_id is None and modes[c.id] == mode for c in cs)
-          and sum(c.units_per_week for c in cs) >= min_demand):
+          and week_units(cs) >= min_demand):
         self.taken_forms.add((sid, form))
         return subjects[sid], form, cs
     return None
@@ -100,12 +103,17 @@ def lecturer_without_availability(w: World) -> None:
 
 def lecturer_over_limit(w: World) -> None:
   first = next(c for c in w.classes if c.lecturer_id is None and c.form == "L")
-  same = [c for c in w.classes if c.lecturer_id is None and c.subject_id == first.subject_id and c.form == "L"][:3]
+  candidates = [c for c in w.classes if c.lecturer_id is None and c.subject_id == first.subject_id and c.form == "L"]
+  same = []
+  for c in candidates:  # tyle zajęć, żeby w gorszym tygodniu przekroczyć limit 2
+    same.append(c)
+    if len(same) >= 3 and week_units(same) > 2:
+      break
   lec = w.lecturer(w.comp(first), [Availability(day=d, from_="08:00", to="18:00") for d in ("Pn", "Wt", "Śr")], 2)
   for c in same:
     w.pin(c, lec)
-  load = sum(c.units_per_week for c in same)
-  w.note("limit-ponizej-obciazenia", f"{lec.id} ma limit 2 jednostki, a przydzielone {load}", [lec.id, *(c.id for c in same)])
+  w.note("limit-ponizej-obciazenia", f"{lec.id} ma limit 2 jednostki, a przydzielone {week_units(same)} w gorszym tygodniu",
+         [lec.id, *(c.id for c in same)])
 
 
 def one_unit_and_ab(w: World) -> None:
@@ -167,8 +175,8 @@ def pool_over_limit(w: World) -> None:
   week = [Availability(day=d, from_="08:00", to="18:00") for d in ("Pn", "Wt", "Śr", "Cz", "Pt")]
   pool = [w.lecturer(s.competence, week, 1), w.lecturer(s.competence, week, 1)]
   s.lecturer_pools = {**(s.lecturer_pools or {}), form: [lec.id for lec in pool]}
-  need = sum(c.units_per_week for c in cs)
-  w.note("pula-za-maly-limit", f"Pula {s.id}/{form} ma łączny limit 2 jednostki, a zajęcia wymagają {need}",
+  w.note("pula-za-maly-limit", f"Pula {s.id}/{form} ma łączny limit 2 jednostki, a zajęcia wymagają {week_units(cs)} "
+         "w gorszym tygodniu",
          [s.id, *(lec.id for lec in pool), *(c.id for c in cs)])
 
 
