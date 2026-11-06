@@ -73,3 +73,5 @@ Limity i czasy liczymy osobno dla tygodnia A (`every` + `A`) i B (`every` + `B`)
 - Na presetach `mini`, `kierunek` i `wydzial` (40 ziaren) nie ma błędów.
 - Każde sprawdzenie ma też test na celowo zepsutych danych.
 - Wydajność: `wydzial` (≈ 700 zajęć) liczy się w ≈ 0,01–0,04 s.
+
+Ograniczenia percepcji i ich wpływ na raport opisuje [percepcja.md](percepcja.md) (#11). Raport jakości przypisuje każdą przeszkodę z tego raportu do jej przyczyny w danych.
