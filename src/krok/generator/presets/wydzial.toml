@@ -1,0 +1,68 @@
+# Cały wydział. Lista kierunków orientacyjna — do podmiany na prawdziwą ofertę WJ.
+name = "wydzial"
+description = "Wydział Informatyki: Informatyka, Automatyka i robotyka, Elektronika i telekomunikacja"
+
+[[fields]]
+id = "INF"
+name = "Informatyka"
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "full-time"
+  semesters = 7
+  cohort_size = [160, 190]
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "part-time"
+  semesters = 8
+  cohort_size = [50, 70]
+  subjects_per_semester = [4, 6]
+
+  [[fields.programs]]
+  degree = "mgr"
+  study_mode = "full-time"
+  semesters = 3
+  cohort_size = [50, 70]
+  subjects_per_semester = [4, 6]
+
+  [[fields.programs]]
+  degree = "mgr"
+  study_mode = "part-time"
+  semesters = 4
+  cohort_size = [30, 45]
+  subjects_per_semester = [4, 5]
+
+[[fields]]
+id = "AIR"
+name = "Automatyka i robotyka"
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "full-time"
+  semesters = 7
+  cohort_size = [70, 90]
+
+  [[fields.programs]]
+  degree = "mgr"
+  study_mode = "full-time"
+  semesters = 3
+  cohort_size = [25, 35]
+  subjects_per_semester = [4, 5]
+
+[[fields]]
+id = "ETI"
+name = "Elektronika i telekomunikacja"
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "full-time"
+  semesters = 7
+  cohort_size = [50, 70]
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "part-time"
+  semesters = 8
+  cohort_size = [25, 40]
+  subjects_per_semester = [4, 5]

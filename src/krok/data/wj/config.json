@@ -1,0 +1,233 @@
+{
+  "timeGrid": {
+    "days": [
+      "Pn",
+      "Wt",
+      "Śr",
+      "Cz",
+      "Pt",
+      "So",
+      "Nd"
+    ],
+    "daysByStudyMode": {
+      "full-time": [
+        "Pn",
+        "Wt",
+        "Śr",
+        "Cz",
+        "Pt"
+      ],
+      "part-time": [
+        "So",
+        "Nd"
+      ]
+    },
+    "dayStart": "07:30",
+    "dayEnd": "20:00",
+    "unitMinutes": 45,
+    "startStepMinutes": 5,
+    "allowedStartTimes": null,
+    "breaks": {
+      "innerMinutes": 10,
+      "minBetweenClassesMinutes": 5,
+      "overrides": [
+        {
+          "from": "16:00",
+          "to": "17:00",
+          "innerMinutes": 5
+        }
+      ]
+    }
+  },
+  "roomTypes": [
+    "lecture-hall",
+    "classroom",
+    "lab-it",
+    "lab-electronics"
+  ],
+  "walkingSpeedKmh": 5,
+  "routeFactor": 1.3,
+  "rules": [
+    {
+      "id": "spojnosc-planu",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "kolizja-grup",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "kolizja-prowadzacych",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "kolizja-sal",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "przerwa-miedzy-zajeciami",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "czas-przejscia",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "typ-sali",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "pojemnosc-sali",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "kompetencja-prowadzacego",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "dostepnosc-prowadzacego",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "blokady-zasobow",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "limit-godzin-prowadzacego",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "komplet-godzin",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "godziny-dnia",
+      "enabled": true,
+      "kind": "hard"
+    },
+    {
+      "id": "max-jednostek-dziennie",
+      "enabled": true,
+      "kind": "hard",
+      "params": {
+        "maxUnits": 10
+      }
+    },
+    {
+      "id": "okienka-studentow",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 1,
+      "params": {
+        "toleranceMinutes": 20
+      },
+      "target": [
+        {
+          "stat": "meanPerLeafGroup",
+          "max": 120
+        }
+      ]
+    },
+    {
+      "id": "najdluzsze-okienko",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 60,
+      "params": {
+        "maxGapMinutes": 180
+      },
+      "target": [
+        {
+          "stat": "total",
+          "max": 0
+        }
+      ]
+    },
+    {
+      "id": "przejscia-miedzy-budynkami",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 15,
+      "params": {
+        "maxPerDay": 2
+      },
+      "target": [
+        {
+          "stat": "meanPerLeafGroupDay",
+          "max": 0.5
+        },
+        {
+          "stat": "daysOverMaxPerDay",
+          "max": 0
+        }
+      ]
+    },
+    {
+      "id": "budynek-macierzysty",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 5,
+      "target": [
+        {
+          "stat": "shareOfUnits",
+          "max": 0.2
+        }
+      ]
+    },
+    {
+      "id": "rownomierny-rozklad",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 10,
+      "target": [
+        {
+          "stat": "maxPerLeafGroup",
+          "max": 4
+        }
+      ]
+    },
+    {
+      "id": "pozne-zajecia",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 2,
+      "params": {
+        "after": "18:00",
+        "studyModes": [
+          "full-time"
+        ]
+      },
+      "target": [
+        {
+          "stat": "total",
+          "max": 0
+        }
+      ]
+    },
+    {
+      "id": "stabilnosc-planu",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 30,
+      "target": [
+        {
+          "stat": "changedUnaffected",
+          "max": 0
+        }
+      ]
+    }
+  ]
+}

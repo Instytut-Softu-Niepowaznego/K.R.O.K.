@@ -1,0 +1,447 @@
+# Katalog przedmiotów i kompetencji Wydziału Informatyki (WJ), z którego generator buduje programy studiów.
+# Wartości orientacyjne, wzorowane na typowym programie. Można je poprawiać bez zmian w kodzie.
+#
+# competence.external = true -> prowadzący spoza wydziału: mniej dni dostępności (lecturers.external_days w presecie).
+# subject.level: "inz" | "mgr" | "any";  semesters = [od, do] (semestr studiów danego stopnia)
+# subject.forms: jednostki 45 min w tygodniu na formę (W/C/L/P);  fields: id kierunków albo ["*"]
+# subject.lab_type: typ sali dla L i P (domyślnie lab-it)
+
+[[competence]]
+id = "matematyka"
+external = true
+home_buildings = ["P4"]
+
+[[competence]]
+id = "fizyka"
+external = true
+home_buildings = ["P3"]
+
+[[competence]]
+id = "jezyk-angielski"
+external = true
+home_buildings = ["P6"]
+
+[[competence]]
+id = "programowanie"
+home_buildings = ["P1", "P2"]
+
+[[competence]]
+id = "algorytmy"
+home_buildings = ["P1"]
+
+[[competence]]
+id = "bazy-danych"
+home_buildings = ["P2"]
+
+[[competence]]
+id = "sieci"
+home_buildings = ["P2", "P5"]
+
+[[competence]]
+id = "systemy-operacyjne"
+home_buildings = ["P1"]
+
+[[competence]]
+id = "inzynieria-oprogramowania"
+home_buildings = ["P2", "P5"]
+
+[[competence]]
+id = "sztuczna-inteligencja"
+home_buildings = ["P5"]
+
+[[competence]]
+id = "grafika"
+home_buildings = ["P5"]
+
+[[competence]]
+id = "bezpieczenstwo"
+home_buildings = ["P2"]
+
+[[competence]]
+id = "elektronika"
+home_buildings = ["P3", "P4"]
+
+[[competence]]
+id = "automatyka"
+home_buildings = ["P4"]
+
+[[competence]]
+id = "telekomunikacja"
+home_buildings = ["P3"]
+
+[[competence]]
+id = "przedmioty-humanistyczne"
+external = true
+home_buildings = ["P6"]
+
+# --- inżynierskie, wspólne ---
+
+[[subject]]
+id = "AM1"
+name = "Analiza matematyczna I"
+competence = "matematyka"
+level = "inz"
+semesters = [1, 1]
+forms = { W = 2, C = 2 }
+
+[[subject]]
+id = "AM2"
+name = "Analiza matematyczna II"
+competence = "matematyka"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, C = 2 }
+
+[[subject]]
+id = "ALG-LIN"
+name = "Algebra liniowa z geometrią"
+competence = "matematyka"
+level = "inz"
+semesters = [1, 2]
+forms = { W = 2, C = 2 }
+
+[[subject]]
+id = "MAT-DYS"
+name = "Matematyka dyskretna"
+competence = "matematyka"
+level = "inz"
+semesters = [1, 3]
+forms = { W = 2, C = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "PRSTAT"
+name = "Rachunek prawdopodobieństwa i statystyka"
+competence = "matematyka"
+level = "inz"
+semesters = [3, 4]
+forms = { W = 2, C = 2 }
+
+[[subject]]
+id = "FIZ"
+name = "Fizyka"
+competence = "fizyka"
+level = "inz"
+semesters = [1, 2]
+forms = { W = 2, L = 1 }
+lab_type = "lab-electronics"
+
+[[subject]]
+id = "ANG"
+name = "Język angielski"
+competence = "jezyk-angielski"
+level = "any"
+semesters = [1, 4]
+forms = { C = 2 }
+
+[[subject]]
+id = "ETYKA"
+name = "Etyka zawodu inżyniera"
+competence = "przedmioty-humanistyczne"
+level = "inz"
+semesters = [1, 7]
+forms = { W = 1 }
+
+[[subject]]
+id = "WDP"
+name = "Wstęp do programowania"
+competence = "programowanie"
+level = "inz"
+semesters = [1, 1]
+forms = { W = 2, L = 2 }
+
+[[subject]]
+id = "PO"
+name = "Programowanie obiektowe"
+competence = "programowanie"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, L = 2 }
+
+[[subject]]
+id = "TC"
+name = "Technika cyfrowa"
+competence = "elektronika"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+
+# --- Informatyka ---
+
+[[subject]]
+id = "ASD"
+name = "Algorytmy i struktury danych"
+competence = "algorytmy"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, C = 1, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "BD"
+name = "Bazy danych"
+competence = "bazy-danych"
+level = "inz"
+semesters = [3, 4]
+forms = { W = 2, L = 2 }
+fields = ["INF", "AIR"]
+
+[[subject]]
+id = "SO"
+name = "Systemy operacyjne"
+competence = "systemy-operacyjne"
+level = "inz"
+semesters = [3, 4]
+forms = { W = 2, L = 2 }
+fields = ["INF", "ETI"]
+
+[[subject]]
+id = "SK"
+name = "Sieci komputerowe"
+competence = "sieci"
+level = "inz"
+semesters = [4, 5]
+forms = { W = 2, L = 2 }
+
+[[subject]]
+id = "IO"
+name = "Inżynieria oprogramowania"
+competence = "inzynieria-oprogramowania"
+level = "inz"
+semesters = [4, 5]
+forms = { W = 2, P = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "AW"
+name = "Aplikacje webowe"
+competence = "programowanie"
+level = "inz"
+semesters = [4, 6]
+forms = { W = 1, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "PSI"
+name = "Podstawy sztucznej inteligencji"
+competence = "sztuczna-inteligencja"
+level = "inz"
+semesters = [5, 6]
+forms = { W = 2, L = 2 }
+fields = ["INF", "AIR"]
+
+[[subject]]
+id = "GK"
+name = "Grafika komputerowa"
+competence = "grafika"
+level = "inz"
+semesters = [5, 6]
+forms = { W = 1, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "BSI"
+name = "Bezpieczeństwo systemów informatycznych"
+competence = "bezpieczenstwo"
+level = "inz"
+semesters = [5, 7]
+forms = { W = 2, L = 2 }
+fields = ["INF", "ETI"]
+
+[[subject]]
+id = "PZESP"
+name = "Projekt zespołowy"
+competence = "inzynieria-oprogramowania"
+level = "inz"
+semesters = [6, 7]
+forms = { P = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "SDYPL"
+name = "Seminarium dyplomowe"
+competence = "inzynieria-oprogramowania"
+level = "inz"
+semesters = [7, 8]
+forms = { C = 2 }
+
+[[subject]]
+id = "PSR"
+name = "Programowanie systemów rozproszonych"
+competence = "programowanie"
+level = "inz"
+semesters = [5, 7]
+forms = { W = 2, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "AK"
+name = "Architektura komputerów"
+competence = "systemy-operacyjne"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, L = 1 }
+fields = ["INF", "ETI"]
+
+# --- Automatyka i robotyka ---
+
+[[subject]]
+id = "PA"
+name = "Podstawy automatyki"
+competence = "automatyka"
+level = "inz"
+semesters = [3, 4]
+forms = { W = 2, C = 1, L = 2 }
+lab_type = "lab-electronics"
+fields = ["AIR"]
+
+[[subject]]
+id = "ROB"
+name = "Robotyka"
+competence = "automatyka"
+level = "inz"
+semesters = [5, 6]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+fields = ["AIR"]
+
+[[subject]]
+id = "STPLC"
+name = "Sterowniki PLC"
+competence = "automatyka"
+level = "inz"
+semesters = [4, 6]
+forms = { W = 1, L = 2 }
+lab_type = "lab-electronics"
+fields = ["AIR"]
+
+[[subject]]
+id = "MIKRO"
+name = "Technika mikroprocesorowa"
+competence = "elektronika"
+level = "inz"
+semesters = [3, 5]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+fields = ["AIR", "ETI"]
+
+# --- Elektronika i telekomunikacja ---
+
+[[subject]]
+id = "TO"
+name = "Teoria obwodów"
+competence = "elektronika"
+level = "inz"
+semesters = [2, 3]
+forms = { W = 2, C = 2, L = 1 }
+lab_type = "lab-electronics"
+fields = ["ETI", "AIR"]
+
+[[subject]]
+id = "UE"
+name = "Układy elektroniczne"
+competence = "elektronika"
+level = "inz"
+semesters = [3, 5]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+fields = ["ETI"]
+
+[[subject]]
+id = "PTEL"
+name = "Podstawy telekomunikacji"
+competence = "telekomunikacja"
+level = "inz"
+semesters = [4, 5]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+fields = ["ETI"]
+
+[[subject]]
+id = "CPS"
+name = "Cyfrowe przetwarzanie sygnałów"
+competence = "telekomunikacja"
+level = "inz"
+semesters = [5, 7]
+forms = { W = 2, L = 2 }
+fields = ["ETI", "AIR"]
+
+# --- magisterskie ---
+
+[[subject]]
+id = "MO"
+name = "Metody optymalizacji"
+competence = "matematyka"
+level = "mgr"
+semesters = [1, 2]
+forms = { W = 2, C = 2 }
+
+[[subject]]
+id = "UM"
+name = "Uczenie maszynowe"
+competence = "sztuczna-inteligencja"
+level = "mgr"
+semesters = [1, 2]
+forms = { W = 2, L = 2 }
+
+[[subject]]
+id = "ZPI"
+name = "Zarządzanie projektami informatycznymi"
+competence = "inzynieria-oprogramowania"
+level = "mgr"
+semesters = [1, 3]
+forms = { W = 1, P = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "SRW"
+name = "Systemy rozproszone i chmurowe"
+competence = "sieci"
+level = "mgr"
+semesters = [1, 3]
+forms = { W = 2, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "ZBD"
+name = "Zaawansowane bazy danych"
+competence = "bazy-danych"
+level = "mgr"
+semesters = [1, 2]
+forms = { W = 2, L = 2 }
+fields = ["INF"]
+
+[[subject]]
+id = "KRYPT"
+name = "Kryptografia stosowana"
+competence = "bezpieczenstwo"
+level = "mgr"
+semesters = [2, 3]
+forms = { W = 2, L = 2 }
+
+[[subject]]
+id = "STAD"
+name = "Sterowanie adaptacyjne"
+competence = "automatyka"
+level = "mgr"
+semesters = [1, 3]
+forms = { W = 2, L = 2 }
+lab_type = "lab-electronics"
+fields = ["AIR"]
+
+[[subject]]
+id = "WIZ"
+name = "Wizja komputerowa"
+competence = "grafika"
+level = "mgr"
+semesters = [2, 3]
+forms = { W = 1, L = 2 }
+
+[[subject]]
+id = "SMGR"
+name = "Seminarium magisterskie"
+competence = "inzynieria-oprogramowania"
+level = "mgr"
+semesters = [2, 4]
+forms = { C = 2 }
