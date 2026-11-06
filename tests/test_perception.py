@@ -367,12 +367,58 @@ def test_cli_survives_legacy_console_encoding(tmp_path, args, code):
 
 
 def test_blocks_do_not_leak_between_resource_types():
-  """Id są unikalne tylko w kolekcji: blokada grupy o id prowadzącego albo sali nie dotyka tych zasobów."""
+  """Id są unikalne tylko w kolekcji: prowadzący o id takim jak grupa, z poprawnymi odwołaniami."""
+  from krok.model import reference_errors
   ds = data()
+  group = next(g for g in ds.groups if g.kind == "lab")
   lec = next(lec for lec in ds.lecturers if lec.availability)
-  room = ds.rooms[0]
-  ds.calendar.exceptions.append(full_block(ds, "g", group_ids=[lec.id, room.id]))
-  ds.calendar.exceptions.append(full_block(ds, "l", lecturer_ids=[room.id]))
+  old = lec.id
+  lec.id = group.id  # ta sama nazwa w dwóch kolekcjach jest dozwolona
+  for c in ds.classes:
+    if c.lecturer_id == old:
+      c.lecturer_id = lec.id
+  for subject in ds.subjects:
+    if subject.lecturer_pools:
+      subject.lecturer_pools = {f: [lec.id if i == old else i for i in pool] for f, pool in subject.lecturer_pools.items()}
+  assert reference_errors(ds) == []
+
+  ds.calendar.exceptions.append(full_block(ds, "g", group_ids=[group.id]))
+  state = build_state(ds)
+  assert state.group_availability[group.id] == {} and state.lecturer_availability[lec.id]
+
+  ds.calendar.exceptions[-1] = full_block(ds, "l", lecturer_ids=[lec.id])
+  state = build_state(ds)
+  assert state.lecturer_availability[lec.id] == {} and state.group_availability[group.id]
+
+
+@pytest.mark.parametrize("scope, blocked", [({"faculty_ids": ["WJ"]}, True), ({}, True), ({"faculty_ids": ["INNY"]}, False)])
+def test_faculty_and_empty_scope_blocks(scope, blocked):
+  """Blokada na cały semestr z samym facultyIds obejmuje zasoby wydziału, a pusty scope wszystkie dane."""
+  ds = data()
+  ds.calendar.exceptions.append(full_block(ds, "w", **scope))
   state, report = analyze(ds)
-  assert state.lecturer_availability[lec.id] and state.room_availability[room.id]
-  assert report.verdict == "no-obstacles-found", [p.message for p in report.problems if p.severity == "error"]
+  assert (not state.rooms_by_type) == blocked
+  assert (report.verdict == "infeasible") == blocked
+
+
+def test_partial_group_block_reduces_group_time():
+  """Blokada rocznika 08:00–20:00 przez cały semestr zostawia 30 min dziennie: plan studenta się nie mieści."""
+  ds = data()
+  cohort = next(g for g in ds.groups if g.kind == "cohort")
+  block = full_block(ds, "g", group_ids=[cohort.id])
+  block.from_time, block.to_time = "08:00", "20:00"
+  ds.calendar.exceptions.append(block)
+  state, report = analyze(ds)
+  leaf = state.leaf_groups[0]
+  assert state.group_available_minutes(leaf.id, "full-time") == 5 * 30
+  assert "za-malo-czasu-grupy" in codes(report)
+
+
+def test_disabled_block_rule_ignores_blocks():
+  """Bez reguły blokady-zasobow plan może korzystać z zablokowanych zasobów, więc blokady nie są przeszkodą."""
+  ds = data()
+  ds.calendar.exceptions.append(full_block(ds, "w", room_ids=[r.id for r in ds.rooms]))
+  assert analyze(ds)[1].verdict == "infeasible"
+  next(r for r in ds.config.rules if r.id == "blokady-zasobow").enabled = False
+  state, report = analyze(ds)
+  assert report.verdict == "no-obstacles-found" and state.rooms_by_type

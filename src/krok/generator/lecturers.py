@@ -121,14 +121,31 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
     by_comp[comp].append(lec)
     return lec
 
-  def top_up(comp: str, mode: str) -> None:
-    need = minutes_need.get((comp, mode), 0) * spec.slack
-    have = sum(available_minutes(lec, mode, config) for lec in by_comp[comp])
+  def grow(comp: str, mode: str, measure, need: float, what: str) -> None:
+    """Dodaje prowadzących z kompetencją, aż suma `measure` pokryje `need`.
+
+    Pojedynczy prowadzący może wylosować zero (np. wzorzec z 0 dniami), więc wtedy losujemy dalej. Gdy tryb
+    nie ma w konfiguracji żadnych dni, nikt nie doda czasu i kończymy od razu. Gdy przez wiele prób nic nie
+    przybywa, preset jest sprzeczny i zgłaszamy to zamiast pętli bez końca.
+    """
+    if not config.time_grid.days_by_study_mode[mode]:
+      return
+    have, misses = sum(measure(lec) for lec in by_comp[comp]), 0
     while have < need:
-      added = available_minutes(new(comp, mode), mode, config)
-      if added <= 0:  # np. brak dni dla trybu w konfiguracji: kolejni prowadzący nic nie zmienią
-        break
-      have += added
+      gained = measure(new(comp, mode))
+      if gained > 0:
+        have, misses = have + gained, 0
+      elif (misses := misses + 1) >= 50:
+        raise ValueError(f"Nie da się dobrać prowadzących z kompetencją {comp} ({mode}): 50 kolejnych "
+                         f"losowań nie zwiększyło {what}. Sprawdź lecturers w presecie.")
+
+  def top_up(comp: str, mode: str) -> None:
+    # dostępność w minutach w dniach trybu (prowadzący nie mają dwóch zajęć naraz)
+    grow(comp, mode, lambda lec: available_minutes(lec, mode, config), minutes_need.get((comp, mode), 0) * spec.slack,
+         "dostępności")
+    # rzeczywiście wylosowane limity prowadzących dostępnych w tym trybie, a nie szacunek ze średniego limitu
+    grow(comp, mode, lambda lec: lec.max_units_weekly if available_minutes(lec, mode, config) else 0,
+         demand.get((comp, mode), 0) * spec.slack, "limitów jednostek")
 
   used_comps = [c.id for c in catalog.competence if any(k[0] == c.id for k in demand)]
   for comp in used_comps:
@@ -146,6 +163,9 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
     for _ in range(need - len(shared)):
       new(comp, "part-time")
     top_up(comp, "part-time")
+    # Kadra dzienna z dyżurami w weekend ma jeden limit na oba tryby, więc suma limitów musi pokryć oba naraz.
+    grow(comp, "full-time" if demand.get((comp, "full-time")) else "part-time", lambda lec: lec.max_units_weekly,
+         (demand.get((comp, "full-time"), 0) + demand[(comp, "part-time")]) * spec.slack, "limitów jednostek")
 
   internal = [c for c in used_comps if not comps[c].external]
   for lec in lecturers:
