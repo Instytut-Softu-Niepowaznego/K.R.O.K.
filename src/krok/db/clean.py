@@ -79,6 +79,13 @@ def _validation_issue(source: str, rid: str | None, error: dict) -> Issue:
   return Issue(source, rid, label, "rejected", field, f"{field or 'rekord'}: {error['msg']}")
 
 
+def _needed_optional_field(source: str, rec: dict) -> str | None:
+  """Pole opcjonalne w modelu, ale wymagane w tym rekordzie. Tylko grupa ma takie warunki (Group._check)."""
+  if source != "groups.json":
+    return None
+  return "semester" if rec.get("kind") == "cohort" else "parentId"
+
+
 def _is_copy_id(original: str, rid: str) -> bool:
   return re.fullmatch(re.escape(original) + r"[-_ ]\d+", rid) is not None
 
@@ -138,8 +145,9 @@ def clean_records(source: str, raw: object, model: type[Model], limits: Threshol
       item = model.model_validate(clean)
     except ValidationError as e:
       error = e.errors()[0]
-      if missing and not error["loc"]:  # walidator całego rekordu: brak pola opcjonalnego może go unieważnić, np. parentId grupy
-        issues.append(Issue(source, rid, "missingField", "rejected", missing[0], f"brak pola {missing[0]}: {error['msg']}"))
+      cause = _needed_optional_field(source, clean)
+      if cause in missing and not error["loc"]:
+        issues.append(Issue(source, rid, "missingField", "rejected", cause, f"brak pola {cause}: {error['msg']}"))
       else:
         issues.append(_validation_issue(source, rid, error))
       continue
