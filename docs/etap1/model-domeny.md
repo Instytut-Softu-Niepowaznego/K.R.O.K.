@@ -18,7 +18,8 @@ Modelujemy jeden wydział: Wydział Informatyki (WJ) Politechniki Opolskiej, bud
 - Każda encja ma stabilne `id` (string). Odwołania tylko przez `id`.
 - Długość zajęć podawana w **jednostkach** (45 min). Godziny startu i przerwy są w formacie `HH:MM` i w minutach.
 - Wszystkie reguły, które mogą się zmienić (godziny, przerwy, dni, prędkość przejścia), siedzą w konfiguracji, nie w kodzie.
-- Obecny kod (`src/krok/harness/plan.py`, `validate_plan`) i dane w `src/krok/data/` używają starego modelu i nie realizują tej specyfikacji, np. nie sprawdzają kolizji w hierarchii grup. Ta specyfikacja obowiązuje dla nowego kodu.
+- Implementacja modelu to pydantic w `src/krok/model/` (pola w Pythonie w `snake_case`, w JSON w `camelCase`). Zmiana modelu = zmiana tego dokumentu i `src/krok/model/` w tym samym PR. `tests/test_model.py` sprawdza, że przykłady JSON z tego dokumentu przechodzą walidację.
+- Obecny kod (`src/krok/harness/plan.py`, `validate_plan`) i dane w `src/krok/data/*.json` używają starego modelu i nie realizują tej specyfikacji, np. nie sprawdzają kolizji w hierarchii grup. Ta specyfikacja obowiązuje dla nowego kodu.
 
 ## Zasady układania
 
@@ -271,6 +272,8 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 | `lecturers.json` | prowadzący | generator (dostępność, limity) |
 | `subjects.json` | przedmioty z pulami prowadzących | generator |
 | `classes.json` | zajęcia do zaplanowania | generator |
+
+`config.json` to obiekt `{timeGrid, roomTypes, walkingSpeedKmh, rules}`, `calendar.json` to `{"calendar": {...}}`, `faculties.json` to `{faculties, fields, programs}`, a pozostałe pliki to tablice encji. Ręczne dane bazowe WJ (`config.json`, `buildings.json`, `rooms.json`) leżą w `src/krok/data/wj/`.
 
 ### Generator (#7)
 
