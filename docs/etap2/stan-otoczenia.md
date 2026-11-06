@@ -49,8 +49,8 @@ Każde sprawdzenie zakłada, że obowiązują pewne reguły twarde. Jeśli któr
 | `za-malo-czasu-puli` | `dostepnosc-prowadzacego` | zajęcia z pulą trwają dłużej niż łączna dostępność puli |
 | `za-malo-czasu-kompetencji` | `dostepnosc-prowadzacego` | zajęcia z kompetencją trwają dłużej niż łączna dostępność prowadzących z tą kompetencją |
 | `limit-prowadzacego` | `limit-godzin-prowadzacego` | przydziały na sztywno przekraczają `maxUnitsWeekly` w tygodniu A lub B |
-| `limit-puli` | `limit-godzin-prowadzacego` | zajęcia z pulą przekraczają łączny limit puli |
-| `limit-kompetencji` | `limit-godzin-prowadzacego` | zajęcia z kompetencją przekraczają sumę limitów prowadzących z tą kompetencją |
+| `limit-puli` | `limit-godzin-prowadzacego` | zajęcia z pulą przekraczają łączny limit puli albo, w danym trybie, limit osób z puli, które mogą je w nim prowadzić |
+| `limit-kompetencji` | `limit-godzin-prowadzacego` | zajęcia z kompetencją przekraczają sumę limitów prowadzących z tą kompetencją, łącznie albo w danym trybie (licząc tylko tych, którzy mogą je w nim prowadzić) |
 | `za-malo-sal` | `komplet-godzin` | czas zajęć sal danego typu, trybu i progu pojemności (grupy ≥ k osób → sale ≥ k miejsc) przekracza dostępny czas tych sal |
 | `za-malo-czasu-grupy` | `komplet-godzin` | plan studenta wymaga więcej czasu, niż dają dni zajęć po blokadach grupy i jej przodków |
 | `za-duzo-jednostek-grupy` | `max-jednostek-dziennie` | plan studenta ma więcej jednostek niż `maxUnits` × liczba dni |

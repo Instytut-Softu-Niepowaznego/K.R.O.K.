@@ -214,6 +214,8 @@ class _Checker:
         self.add("limit-puli", "error", f"Pula {sid}/{form} ma łączny limit {limit} jednostek, a zajęcia wymagają "
                  f"{_need(infos, week):g} w tygodniu {week}", "limit-godzin-prowadzacego", [i.cls.id for i in infos],
                  [sid, *pool], (*SCHEDULED, "kompetencja-prowadzacego"))
+      else:
+        self._mode_limits(f"Pula {sid}/{form}", "limit-puli", infos, lec_by_id, [sid, *pool])
       for mode in sorted({i.study_mode for i in infos}):
         need = max(_need([i for i in infos if i.study_mode == mode], w, minutes=True) for w in WEEKS)
         have = sum(self.s.available_minutes(lid, mode) for lid in pool if lid in lec_by_id)
@@ -243,9 +245,11 @@ class _Checker:
         self.add("limit-kompetencji", "error", f"Kompetencja {comp}: zajęcia wymagają {need:g} jednostek w tygodniu "
                  f"{week}, a suma limitów {len(lecs)} prowadzących to {limit}", "limit-godzin-prowadzacego",
                  [i.cls.id for i in infos], [comp], comp_rules)
-      elif limit and need > LECTURER_WARNING * limit:
-        self.add("wysokie-obciazenie-kompetencji", "warning", f"Kompetencja {comp} wykorzystuje {need / limit:.0%} limitów",
-                 ids=[comp])
+      else:
+        if need > LECTURER_WARNING * limit:
+          self.add("wysokie-obciazenie-kompetencji", "warning", f"Kompetencja {comp} wykorzystuje {need / limit:.0%} limitów",
+                   ids=[comp])
+        self._mode_limits(f"Kompetencja {comp}", "limit-kompetencji", infos, lec_by_id, [comp])
       for m in modes:
         if avail[m] and minutes[m] > avail[m]:
           self.add("za-malo-czasu-kompetencji", "error", f"Kompetencja {comp} ({m}): zajęcia trwają {minutes[m]:g} min "
@@ -257,6 +261,22 @@ class _Checker:
       if not self.s.lecturer_availability.get(lec.id) and lec.id not in pinned:
         self.add("prowadzacy-bez-dostepnosci", "warning", f"{lec.id} nie ma żadnej dostępności", ids=[lec.id])
     return balances
+
+  def _mode_limits(self, what: str, code: str, infos: list[ClassInfo], lec_by_id: dict, ids: list[str]) -> None:
+    """Limit w każdym trybie osobno: zajęcia zaoczne może poprowadzić tylko ktoś, komu mieszczą się w weekend,
+    więc łączny limit nie wystarczy, jeśli na osoby dostępne w danym trybie przypada go za mało."""
+    for mode in sorted({i.study_mode for i in infos}):
+      in_mode = [i for i in infos if i.study_mode == mode]
+      able = sorted({lid for i in in_mode for lid in i.available if lid in lec_by_id})
+      if not able:
+        continue  # nikt nie może ich poprowadzić: zgłasza to brak-dostepnego-prowadzacego
+      limit = sum(lec_by_id[lid].max_units_weekly for lid in able)
+      week = max(WEEKS, key=lambda w: _need(in_mode, w))
+      if _need(in_mode, week) > limit:
+        self.add(code, "error", f"{what} ({mode}): zajęcia wymagają {_need(in_mode, week):g} jednostek w tygodniu {week}, "
+                 f"a {len(able)} osób, które mogą je prowadzić w tym trybie, ma łączny limit {limit}",
+                 "limit-godzin-prowadzacego", [i.cls.id for i in in_mode], [*ids, *able],
+                 (*SCHEDULED, "kompetencja-prowadzacego", "dostepnosc-prowadzacego", "godziny-dnia", "spojnosc-planu"))
 
   # --- sale: czas sal per typ, tryb, tydzień i próg pojemności ---
 

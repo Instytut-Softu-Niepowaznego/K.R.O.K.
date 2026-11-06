@@ -422,3 +422,46 @@ def test_disabled_block_rule_ignores_blocks():
   next(r for r in ds.config.rules if r.id == "blokady-zasobow").enabled = False
   state, report = analyze(ds)
   assert report.verdict == "no-obstacles-found" and state.rooms_by_type
+
+
+def _wide(days):
+  from krok.model import Availability
+  return [Availability(day=d, from_="07:30", to="20:00") for d in days]
+
+
+def test_pool_limit_is_checked_per_study_mode():
+  """Łączny limit puli wystarcza, ale osoby dostępne w weekend mają za mały limit na zajęcia zaoczne."""
+  ds = data("kierunek")
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+
+  def forms(s, f):
+    return [c for c in ds.classes if c.subject_id == s.id and c.form == f]
+  subject, form, pool = next(
+    (s, f, p) for s in ds.subjects for f, p in (s.lecturer_pools or {}).items() if len(p) >= 2
+    and sum(c.units_per_week for c in forms(s, f) if gmode[c.group_id] == "part-time") >= 3
+    and any(gmode[c.group_id] == "full-time" for c in forms(s, f)))
+  members = [lec for lec in ds.lecturers if lec.id in pool]
+  for i, lec in enumerate(members):
+    lec.availability, lec.max_units_weekly = (_wide(["So", "Nd"]), 1) if i == 0 else (_wide(["Pn", "Wt", "Śr", "Cz", "Pt"]), 60)
+  _, report = analyze(ds)
+  hits = [p for p in errors_with(report, "limit-puli") if subject.id in p.ids]
+  assert hits and "(part-time)" in hits[0].message
+
+
+def test_competence_limit_is_checked_per_study_mode():
+  ds = data("kierunek")
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+  comp = {s.id: s.competence for s in ds.subjects}
+  k = next(c for c in sorted(set(comp.values())) if sum(x.units_per_week for x in ds.classes
+           if comp[x.subject_id] == c and gmode[x.group_id] == "part-time") >= 3)
+  for s in ds.subjects:
+    if s.competence == k:
+      s.lecturer_pools = None
+  staff = [lec for lec in ds.lecturers if k in lec.competences]
+  for i, lec in enumerate(staff):
+    lec.availability, lec.max_units_weekly = (_wide(["So", "Nd"]), 1) if i == 0 else (_wide(["Pn", "Wt", "Śr", "Cz", "Pt"]), 60)
+  _, report = analyze(ds)
+  hits = [p for p in errors_with(report, "limit-kompetencji") if k in p.ids]
+  assert hits and "(part-time)" in hits[0].message
