@@ -2,7 +2,7 @@
 
 - **Status:** przyjęta (25.10.2026), zaktualizowana 1.11.2026 po rezygnacji ze slotów
 - **Zadanie:** #5. Implementacja: #17 (Sprint 3)
-- **Powiązane:** [model domeny](../etap1/model-domeny.md) (#1), [architektura](../architektura.html) (#4), kryteria (#3)
+- **Powiązane:** [model domeny](../etap1/model-domeny.md) (#1), [architektura](../architektura.html) (#4), [kryteria](../etap1/kryteria.md) (#3)
 
 ## Problem
 
@@ -64,7 +64,7 @@ Solver nie zawiera wartości reguł w kodzie. Przy każdym uruchomieniu buduje m
 | `enabled: false` | reguła pomijana |
 | `params` | parametry ograniczenia lub kary |
 
-Zmiana wartości, wagi lub przełączenie reguły wymaga tylko edycji konfiguracji i ponownego ułożenia planu. Nowy **rodzaj** reguły wymaga dopisania jego obsługi w kodzie. Plan zapisuje `rulesSnapshot`, czyli kopię zasad, z którymi powstał. Docelową listę reguł ustala #3.
+Zmiana wartości, wagi lub przełączenie reguły wymaga tylko edycji konfiguracji i ponownego ułożenia planu. Nowy **rodzaj** reguły wymaga dopisania jego obsługi w kodzie. Plan zapisuje `rulesSnapshot`, czyli kopię zasad, z którymi powstał. Pełna lista reguł jest w [kryteriach](../etap1/kryteria.md) (#3).
 
 ## Konsekwencje
 

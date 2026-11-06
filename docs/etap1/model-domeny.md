@@ -30,15 +30,16 @@ Do zasad należą godziny i przerwy (`timeGrid`) oraz lista reguł w `config.jso
 {
   "rules": [
     { "id": "max-jednostek-dziennie", "enabled": true, "kind": "hard", "params": { "maxUnits": 10 } },
-    { "id": "okienka-studentow", "enabled": true, "kind": "soft", "weight": 5 },
-    { "id": "przejscia-miedzy-budynkami", "enabled": true, "kind": "soft", "weight": 2 }
+    { "id": "okienka-studentow", "enabled": true, "kind": "soft", "weight": 1, "params": { "toleranceMinutes": 20 } },
+    { "id": "przejscia-miedzy-budynkami", "enabled": true, "kind": "soft", "weight": 15, "params": { "maxPerDay": 2 } }
   ]
 }
 ```
 
 - `kind`: `hard` = plan nie może jej złamać, `soft` = system minimalizuje naruszenia zgodnie z wagą `weight`.
 - Włączenie, wyłączenie, zmiana parametrów i wagi nie wymagają zmian w kodzie. Nowy rodzaj reguły wymaga dopisania jego obsługi.
-- Reguły w przykładzie są orientacyjne. Docelową listę ustala #3.
+- Opcjonalny `target` to wartość docelowa reguły, którą walidator sprawdza automatycznie.
+- Pełna lista reguł z parametrami, wagami, wartościami docelowymi i sposobem pomiaru jest w [kryteriach](kryteria.md) (#3).
 - Każdy plan zapisuje kopię zasad, z którymi powstał (`rulesSnapshot`), żeby dało się porównywać wersje i odczytać stary plan po zmianie konfiguracji.
 
 ## Czas
@@ -297,7 +298,7 @@ Lista przydziałów. Jeden przydział = jedno spotkanie.
 
 ### Raport
 
-Wartości metryk z #3 (twarde naruszenia, okienka, przejścia, obciążenie sal itd.) plus lista naruszeń:
+Wartości metryk z [kryteriów](kryteria.md) (#3) (twarde naruszenia, okienka, przejścia itd.) plus lista naruszeń:
 
 ```json
 {
@@ -309,7 +310,7 @@ Wartości metryk z #3 (twarde naruszenia, okienka, przejścia, obciążenie sal 
 }
 ```
 
-Definicje metryk i `ruleId` ustala #3.
+Definicje metryk, `ruleId` i pełny format raportu (metryki, wydajność) są w [kryteriach](kryteria.md#raport).
 
 ### Widoki
 
