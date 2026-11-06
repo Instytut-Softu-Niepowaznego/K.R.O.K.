@@ -9,6 +9,7 @@ import random
 from collections import defaultdict
 
 from krok.model import Availability, Building, Class, Config, Group, Lecturer, Program, Subject, to_hhmm, to_minutes
+from krok.perception.measures import meeting_minutes
 
 from .names import NameGenerator
 from .settings import AvailabilityPattern, Catalog, Preset
@@ -17,6 +18,12 @@ from .settings import AvailabilityPattern, Catalog, Preset
 def class_load(c: Class) -> float:
   """Średnie obciążenie tygodniowe: zajęcia A/B odbywają się co drugi tydzień."""
   return c.units_per_week * (1 if c.parity == "every" else 0.5)
+
+
+def available_minutes(lec: Lecturer, mode: str, config: Config) -> int:
+  """Łączna dostępność prowadzącego w dniach danego trybu studiów (minuty w tygodniu)."""
+  days = config.time_grid.days_by_study_mode[mode]
+  return sum(to_minutes(a.to) - to_minutes(a.from_) for a in lec.availability if a.day in days)
 
 
 def class_modes(classes: list[Class], groups: list[Group], programs: list[Program]) -> dict[str, str]:
@@ -86,6 +93,13 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
   demand: dict[tuple[str, str], float] = defaultdict(float)
   for c in classes:
     demand[(subject_comp[c.subject_id], modes[c.id])] += class_load(c)
+  # Prowadzący nie mają dwóch zajęć naraz, więc ich łączna dostępność musi pokryć czas zajęć w gorszym tygodniu
+  # (A lub B). Bez tego prowadzący spoza wydziału (1–2 dni) nie wyrabiali się z matematyką i fizyką.
+  minutes_need: dict[tuple[str, str], int] = {}
+  for key in demand:
+    cs = [c for c in classes if (subject_comp[c.subject_id], modes[c.id]) == key]
+    minutes_need[key] = max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, config.time_grid)
+                                for c in cs if c.parity in ("every", w)) for w in ("A", "B"))
 
   lecturers: list[Lecturer] = []
   by_comp: dict[str, list[Lecturer]] = defaultdict(list)
@@ -101,10 +115,20 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
     by_comp[comp].append(lec)
     return lec
 
+  def top_up(comp: str, mode: str) -> None:
+    need = minutes_need.get((comp, mode), 0) * spec.slack
+    have = sum(available_minutes(lec, mode, config) for lec in by_comp[comp])
+    while have < need:
+      added = available_minutes(new(comp, mode), mode, config)
+      if added <= 0:  # np. brak dni dla trybu w konfiguracji: kolejni prowadzący nic nie zmienią
+        break
+      have += added
+
   used_comps = [c.id for c in catalog.competence if any(k[0] == c.id for k in demand)]
   for comp in used_comps:
     for _ in range(math.ceil(demand[(comp, "full-time")] * spec.slack / avg_limit)):
       new(comp, "full-time")
+    top_up(comp, "full-time")
     need = math.ceil(demand[(comp, "part-time")] * spec.slack / avg_limit)
     if not need:
       continue
@@ -115,6 +139,7 @@ def build_lecturers(preset: Preset, catalog: Catalog, config: Config, buildings:
       lec.availability = lec.availability + extra
     for _ in range(need - len(shared)):
       new(comp, "part-time")
+    top_up(comp, "part-time")
 
   internal = [c for c in used_comps if not comps[c].external]
   for lec in lecturers:

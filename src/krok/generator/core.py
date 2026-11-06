@@ -60,7 +60,7 @@ def generate(preset: Preset, seed: int | None = None, *, buildings_path: Path | 
   # Pusta lista sal to dozwolone dane: brak sal pokazuje bilans, a prowadzący dalej potrzebują budynku.
   teaching_buildings = [b for b in buildings if any(r.building_id == b.id for r in rooms)] or buildings
   lecturers = build_lecturers(preset, catalog, config, teaching_buildings, subjects, classes, groups, programs, _stream(seed, "lecturers"))
-  build_pools(preset, subjects, classes, lecturers, groups, programs, _stream(seed, "pools"))
+  build_pools(preset, config, subjects, classes, lecturers, groups, programs, _stream(seed, "pools"))
   calendar = build_calendar(preset, rooms, _stream(seed, "calendar"))
 
   cases: list[dict] = []

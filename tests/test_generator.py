@@ -10,6 +10,7 @@ from krok.generator.calendar import easter
 from krok.generator.cli import main
 from krok.generator.core import load_generated
 from krok.generator.curriculum import FORM_GROUP_KIND
+from krok.generator.edge_cases import week_units
 from krok.model import dataset_from_files, reference_errors, to_minutes
 
 CLEAN = ["mini", "kierunek", "wydzial"]
@@ -122,7 +123,7 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   assert all(r.capacity < big.size for r in ds.rooms if r.type == room_type)
   assert lecturers[cases["prowadzacy-bez-dostepnosci"]["ids"][0]].availability == []
   over = lecturers[cases["limit-ponizej-obciazenia"]["ids"][0]]
-  assert sum(c.units_per_week for c in ds.classes if c.lecturer_id == over.id) > over.max_units_weekly
+  assert week_units([c for c in ds.classes if c.lecturer_id == over.id]) > over.max_units_weekly
 
   subjects = {s.id: s for s in ds.subjects}
   sid, lid, *class_ids = cases["pula-niedostepna"]["ids"]
@@ -131,8 +132,7 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids(results):
   assert all(a.day in ("So", "Nd") for a in lecturers[lid].availability)
   sid, *ids = cases["pula-za-maly-limit"]["ids"]
   pool_ids = [i for i in ids if i in lecturers]
-  need = sum(c.units_per_week for c in ds.classes if c.id in ids)
-  assert sum(lecturers[i].max_units_weekly for i in pool_ids) < need
+  assert sum(lecturers[i].max_units_weekly for i in pool_ids) < week_units([c for c in ds.classes if c.id in ids])
 
 
 @pytest.mark.parametrize("name", CLEAN)
