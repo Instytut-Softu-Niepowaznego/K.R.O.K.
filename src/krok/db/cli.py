@@ -12,6 +12,7 @@ from .schema import connect, db_path
 
 
 def main(argv: list[str] | None = None) -> int:
+  """Punkt wejścia `krok-db`. Zwraca kod wyjścia."""
   p = argparse.ArgumentParser(prog="krok-db", description="Baza danych K.R.O.K. (#9)")
   p.add_argument("--db", type=Path, help="plik bazy (domyślnie $KROK_DB albo data/krok.db)")
   sub = p.add_subparsers(dest="command", required=True)

@@ -21,25 +21,30 @@ from .schema import TABLES, event_log, read_document, write_document
 
 class _Rejected(Exception):
   def __init__(self, kind: str, message: str):
+    """Zapisuje rodzaj błędu do dziennika zdarzeń."""
     super().__init__(message)
     self.kind = kind
 
 
 def _exists(conn: Connection, table: str, rid: str) -> bool:
+  """Czy rekord o tym `id` jest w tabeli."""
   return conn.execute(select(TABLES[table].c.id).where(TABLES[table].c.id == rid)).first() is not None
 
 
 def _need(conn: Connection, table: str, rid: str, new: Iterable[str] = ()) -> None:
+  """Odrzuca zdarzenie, gdy odwołanie nie wskazuje rekordu z bazy ani z `new`."""
   if rid not in new and not _exists(conn, table, rid):
     raise _Rejected("badReference", f"nieznane {table}/{rid}")
 
 
 def _free(conn: Connection, table: str, rid: str) -> None:
+  """Odrzuca zdarzenie, gdy `id` nowego rekordu jest już zajęte."""
   if _exists(conn, table, rid):
     raise _Rejected("invalidValue", f"{table}/{rid} już istnieje")
 
 
 def _check_classes(conn: Connection, classes: list[Class], *, groups=(), subjects=()) -> None:
+  """Sprawdza nowe zajęcia, zanim cokolwiek trafi do bazy."""
   room_types = Config.model_validate(read_document(conn, "config")).room_types
   seen = set()
   for c in classes:
@@ -56,11 +61,13 @@ def _check_classes(conn: Connection, classes: list[Class], *, groups=(), subject
 
 
 def _insert_classes(conn: Connection, classes: list[Class]) -> None:
+  """Zapisuje nowe zajęcia."""
   if classes:
     conn.execute(TABLES["classes"].insert(), [c.model_dump(mode="json") for c in classes])
 
 
 def _add_exception(conn: Connection, exception) -> None:
+  """Dopisuje wyjątek do kalendarza. Powtórzone `id` odrzuca zdarzenie."""
   calendar = Calendar.model_validate(read_document(conn, "calendar"))
   if any(x.id == exception.id for x in calendar.exceptions):
     raise _Rejected("invalidValue", f"wyjątek {exception.id} już istnieje")
@@ -69,22 +76,26 @@ def _add_exception(conn: Connection, exception) -> None:
 
 
 def _block(event, scope: Scope) -> ResourceBlock:
+  """Blokada sali albo prowadzącego zbudowana ze zdarzenia."""
   p = event.payload
   return ResourceBlock(id=event.id, type="resourceBlock", from_=p.from_, to=p.to, from_time=getattr(p, "from_time", None),
                        to_time=getattr(p, "to_time", None), scope=scope, label=p.reason)
 
 
 def _room_unavailable(conn, e):
+  """Niedostępna sala staje się `resourceBlock` w kalendarzu."""
   _need(conn, "rooms", e.payload.room_id)
   _add_exception(conn, _block(e, Scope(room_ids=[e.payload.room_id])))
 
 
 def _lecturer_absent(conn, e):
+  """Nieobecność staje się `resourceBlock` w kalendarzu."""
   _need(conn, "lecturers", e.payload.lecturer_id)
   _add_exception(conn, _block(e, Scope(lecturer_ids=[e.payload.lecturer_id])))
 
 
 def _availability_changed(conn, e):
+  """Zastępuje dostępność prowadzącego."""
   p = e.payload
   _need(conn, "lecturers", p.lecturer_id)
   t = TABLES["lecturers"]
@@ -92,6 +103,7 @@ def _availability_changed(conn, e):
 
 
 def _group_size_changed(conn, e):
+  """Zmienia liczebność jednej grupy, bez przeliczania przodków."""
   p = e.payload
   _need(conn, "groups", p.group_id)
   t = TABLES["groups"]
@@ -99,6 +111,7 @@ def _group_size_changed(conn, e):
 
 
 def _group_added(conn, e):
+  """Dodaje grupę razem z jej zajęciami."""
   group, classes = e.payload.group, e.payload.classes
   _free(conn, "groups", group.id)
   _need(conn, "programs", group.program_id)
@@ -110,6 +123,7 @@ def _group_added(conn, e):
 
 
 def _subject_added(conn, e):
+  """Dodaje przedmiot razem z jego zajęciami."""
   subject, classes = e.payload.subject, e.payload.classes
   _free(conn, "subjects", subject.id)
   for pool in (subject.lecturer_pools or {}).values():
@@ -121,6 +135,7 @@ def _subject_added(conn, e):
 
 
 def _exception_added(conn, e):
+  """Dopisuje wyjątek po sprawdzeniu odwołań w `scope`."""
   exception = e.payload.exception
   scope = exception.scope
   if scope:
@@ -137,6 +152,7 @@ HANDLERS = {"roomUnavailable": _room_unavailable, "lecturerAbsent": _lecturer_ab
 
 
 def _schema_error_kind(item: StreamItem) -> str:
+  """Rodzaj błędu linii, której iterator nie sparsował."""
   if item.data is None:
     return "malformedJson"
   if item.data.get("type") not in EVENT_TYPES:
@@ -145,16 +161,19 @@ def _schema_error_kind(item: StreamItem) -> str:
 
 
 def _text(value) -> str | None:
+  """Wartość do kolumny tekstowej. Inny typ w zepsutej linii daje `None`."""
   return value if isinstance(value, str) else None
 
 
 def _log(conn: Connection, item: StreamItem, status: str, kind: str | None = None, message: str | None = None) -> None:
+  """Dopisuje linię strumienia do dziennika zdarzeń."""
   data = item.data or {}
   conn.execute(event_log.insert().values(line=item.line, eventId=_text(data.get("id")), timestamp=_text(data.get("timestamp")),
                                          type=_text(data.get("type")), status=status, kind=kind, message=message, raw=item.text))
 
 
 def _latest_applied(conn: Connection) -> dt.datetime | None:
+  """Najpóźniejszy `timestamp` zastosowanych zdarzeń."""
   stamp = conn.execute(select(func.max(event_log.c.timestamp)).where(event_log.c.status == "applied")).scalar()
   return dt.datetime.fromisoformat(stamp) if stamp else None
 

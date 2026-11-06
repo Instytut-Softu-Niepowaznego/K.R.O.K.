@@ -35,6 +35,7 @@ class Issue:
   message: str
 
   def row(self) -> dict:
+    """Rekord dla tabeli `import_issues`."""
     d = asdict(self)
     d["recordId"] = d.pop("record_id")
     return d
@@ -46,12 +47,13 @@ class Thresholds:
   max_coord_delta: float = 0.1  # stopnie od mediany budynków, ok. 11 km
 
 
-def _fields(model: type[Model]) -> dict[str, bool]:
+def field_requirements(model: type[Model]) -> dict[str, bool]:
   """Nazwa pola w JSON -> czy wymagane."""
   return {f.alias or name: f.is_required() for name, f in model.model_fields.items()}
 
 
 def _normalize_keys(source: str, rec: dict, known: dict[str, bool], issues: list[Issue]) -> dict:
+  """Poprawia nazwy pól: stare nazwy z prototypu i literówki. Nieznane pola pomija i zgłasza."""
   out = {k: v for k, v in rec.items() if k in known}
   rid = rec.get("id")
   for key, value in rec.items():
@@ -71,6 +73,7 @@ def _normalize_keys(source: str, rec: dict, known: dict[str, bool], issues: list
 
 
 def _validation_issue(source: str, rid: str | None, error: dict) -> Issue:
+  """Zamienia błąd pydantic na wpis w raporcie."""
   field = ".".join(str(p) for p in error["loc"]) or None
   kind = error["type"]
   if kind == "missing":
@@ -87,10 +90,12 @@ def _needed_optional_field(source: str, rec: dict) -> str | None:
 
 
 def _is_copy_id(original: str, rid: str) -> bool:
+  """Czy `rid` to `id` oryginału z dopisanym numerem, np. `-2`."""
   return re.fullmatch(re.escape(original) + r"[-_ ]\d+", rid) is not None
 
 
 def _flag_outliers(source: str, items: list[Model], limits: Thresholds, issues: list[Issue]) -> None:
+  """Oznacza wartości odstające od podobnych rekordów. Takie rekordy zostają w bazie."""
   if source == "buildings.json":
     for attr in ("lat", "lon"):
       center = statistics.median(getattr(i, attr) for i in items) if items else 0
@@ -116,7 +121,7 @@ def clean_records(source: str, raw: object, model: type[Model], limits: Threshol
   issues: list[Issue] = []
   if not isinstance(raw, list):
     return [], [Issue(source, None, "invalidValue", "rejected", None, "plik nie jest listą rekordów")]
-  known = _fields(model)
+  known = field_requirements(model)
   by_id: dict[str, str] = {}
   by_content: dict[str, list[str]] = defaultdict(list)
   items: list[Model] = []

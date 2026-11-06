@@ -10,6 +10,7 @@ EXAMPLES = 3
 
 
 def build_report(engine: Engine) -> dict:
+  """Raport z importu i zdarzeń jako słownik gotowy do zapisu w JSON."""
   issues = read_issues(engine)
   examples: dict[str, list[dict]] = defaultdict(list)
   for i in issues:
@@ -28,6 +29,7 @@ def build_report(engine: Engine) -> dict:
 
 
 def format_report(report: dict) -> str:
+  """Raport jako tekst do konsoli."""
   lines = ["Rekordy w bazie:"]
   lines += [f"  {name:10} {count}" for name, count in report["records"].items()]
   issues = report["issues"]

@@ -25,6 +25,22 @@ Tabele powstają z modeli pydantic w `src/krok/model/` (`src/krok/db/schema.py`)
 | `import_issues` | problemy z importu |
 | `events` | dziennik zdarzeń: każda linia strumienia ze statusem |
 
+## Pliki CSV
+
+Sześć plików list (`groups`, `buildings`, `rooms`, `lecturers`, `subjects`, `classes`) może być w CSV, np. `rooms.csv` zamiast `rooms.json`. To wygodne dla danych wpisywanych ręcznie (#6). Gdy są oba pliki, wygrywa JSON. `config.json`, `calendar.json` i `faculties.json` zostają w JSON, bo nie są płaskimi tabelami.
+
+```csv
+id,buildingId,number,type,capacity,facultyIds
+P3-213,P3,213,lab-it,16,WJ
+```
+
+- Separator kolumn to przecinek, a nazwy kolumn to pola JSON. Plik z Excela musi być zapisany z przecinkami, inaczej import zgłosi nieznane pole i odrzuci rekordy.
+- Elementy prostej listy rozdziela `;`, np. `WJ;WE`.
+- Pola zagnieżdżone, jak `availability` i `lecturerPools`, mają w komórce JSON.
+- Pusta komórka to `null` w polu opcjonalnym i brak pola w wymaganym.
+
+Wiersze przechodzą przez te same modele pydantic i to samo czyszczenie co JSON. Problemy z rekordów mają w raporcie nazwę `rooms.json`, a błąd samego pliku `rooms.csv`.
+
 ## Czyszczenie
 
 Zaszumione pliki nie przechodzą przez `load_dataset`, bo jeden zły rekord unieważniłby cały plik. Dlatego `import_dir` sprawdza każdy rekord osobno. Problem trafia do raportu, a import idzie dalej. Przerywa go tylko brak albo błąd `config.json` lub `calendar.json`, bo bez nich nie ma z czego zbudować bazy.
