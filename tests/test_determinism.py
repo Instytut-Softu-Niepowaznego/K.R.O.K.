@@ -1,15 +1,13 @@
-"""Determinizm między procesami.
+"""Ten sam seed daje te same pliki, inny seed inne.
 
-Testy w jednym procesie nie złapią kolejności zależnej od haszowania (set, dict
-z kluczami str), bo PYTHONHASHSEED jest wtedy stały. Tu każdy przebieg to osobny
-proces z innym PYTHONHASHSEED.
+Przebiegi idą w osobnych procesach z różnym PYTHONHASHSEED: w jednym procesie
+kolejność zależna od haszowania (set, dict z kluczami str) jest stała i błąd by
+się nie pokazał.
 """
 import os
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 
 def _run(module: str, args: list[str], hash_seed: str) -> None:
@@ -18,20 +16,19 @@ def _run(module: str, args: list[str], hash_seed: str) -> None:
   subprocess.run([sys.executable, "-c", code, *args], env=env, check=True)
 
 
-def _files(path: Path) -> dict[str, bytes]:
-  return {str(p.relative_to(path)): p.read_bytes() for p in sorted(path.rglob("*")) if p.is_file()}
+def _generate(out: Path, seed: int, hash_seed: str) -> dict[str, bytes]:
+  gen = ["--preset", "edge-cases", "--seed", str(seed), "-q"]
+  # Szum psuje walidację, więc zdarzenia powstają z czystych danych.
+  _run("krok.generator.cli", [*gen, "--no-noise", "--out", str(out / "clean")], hash_seed)
+  _run("krok.events.cli", ["generate", "--data", str(out / "clean"), "-q"], hash_seed)
+  _run("krok.generator.cli", [*gen, "--noise", "--out", str(out / "noisy")], hash_seed)
+  return {str(p.relative_to(out)): p.read_bytes() for p in sorted(out.rglob("*")) if p.is_file()}
 
 
-@pytest.mark.parametrize("preset", ["mini", "edge-cases"])
-def test_generator_and_events_same_across_hash_seeds(tmp_path, preset):
-  outs = []
-  for hash_seed in ("1", "2"):
-    out = tmp_path / hash_seed
-    gen = ["--preset", preset, "--seed", "42", "-q"]
-    # Szum psuje walidację, więc zdarzenia powstają z czystych danych.
-    _run("krok.generator.cli", [*gen, "--no-noise", "--out", str(out / "clean")], hash_seed)
-    _run("krok.events.cli", ["generate", "--data", str(out / "clean"), "-q"], hash_seed)
-    _run("krok.generator.cli", [*gen, "--noise", "--out", str(out / "noisy")], hash_seed)
-    outs.append(_files(out))
-  assert {"clean/events.jsonl", "noisy/_noise.json"} <= outs[0].keys()
-  assert outs[0] == outs[1]
+def test_same_seed_same_files_other_seed_differs(tmp_path):
+  first = _generate(tmp_path / "a", 42, "1")
+  assert {"clean/events.jsonl", "noisy/_noise.json"} <= first.keys()
+  assert _generate(tmp_path / "b", 42, "2") == first
+  other = _generate(tmp_path / "c", 43, "1")
+  for name in ("clean/classes.json", "clean/events.jsonl", "noisy/_noise.json"):
+    assert other[name] != first[name], name

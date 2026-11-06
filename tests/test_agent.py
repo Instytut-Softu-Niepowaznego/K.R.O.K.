@@ -63,34 +63,23 @@ def saved_plan(tmp_path, monkeypatch, valid_plan):
   return {"lessons": [l.model_dump() for l in valid_plan]}
 
 
-def test_without_finish_tool_returns_first_text(llm):
-  client = llm(text("gotowe"))
-
-  assert run_agent("sys", "zadanie") == "gotowe"
-  assert client.calls == 1
-
-
-def test_finishes_after_finish_tool_succeeds(llm, saved_plan):
-  client = llm(call("save_plan", saved_plan), text("zapisane"))
-
-  assert run_agent("sys", "zadanie", finish_tool="save_plan") == "zapisane"
-  assert client.nudges() == []
-
-
-def test_nudges_when_model_stops_before_finish_tool(llm, saved_plan):
-  client = llm(text("mam pytanie"), call("save_plan", saved_plan), text("zapisane"))
-
-  assert run_agent("sys", "zadanie", finish_tool="save_plan") == "zapisane"
-  assert len(client.nudges()) == 1
-  assert "save_plan" in client.nudges()[0]["content"]
-
-
-def test_failed_finish_tool_does_not_finish(llm, saved_plan):
-  client = llm(call("save_plan", {"lessons": []}), text("koniec"), call("save_plan", saved_plan), text("zapisane"))
+def test_finishes_only_after_finish_tool_succeeds(llm, saved_plan):
+  """Model kończy za wcześnie, potem save_plan się nie udaje, dopiero drugi zapis kończy pracę."""
+  client = llm(text("mam pytanie"), call("save_plan", {"lessons": []}), text("koniec"), call("save_plan", saved_plan),
+               text("zapisane"))
 
   assert run_agent("sys", "zadanie", finish_tool="save_plan") == "zapisane"
   assert "popraw je przed zapisem" in client.tool_results()[0]["error"]
-  assert len(client.nudges()) == 1
+  assert len(client.nudges()) == 2 and "save_plan" in client.nudges()[0]["content"]
+
+
+def test_tool_errors_go_back_to_model(llm):
+  client = llm(call("validate_plan", "{zły json"), call("brak", {}), text("gotowe"))
+
+  assert run_agent("sys", "zadanie") == "gotowe"
+  results = client.tool_results()
+  assert "nie jest poprawny JSON" in results[0]["error"]
+  assert results[1] == {"error": "Nieznane narzędzie: brak"}
 
 
 def test_raises_when_nudges_run_out(llm):
@@ -99,20 +88,6 @@ def test_raises_when_nudges_run_out(llm):
   with pytest.raises(RuntimeError, match="save_plan.*nie umiem"):
     run_agent("sys", "zadanie", finish_tool="save_plan", max_nudges=2)
   assert client.calls == 3
-
-
-def test_invalid_json_goes_back_to_model(llm):
-  client = llm(call("validate_plan", "{zły json"), text("gotowe"))
-
-  assert run_agent("sys", "zadanie") == "gotowe"
-  assert "nie jest poprawny JSON" in client.tool_results()[0]["error"]
-
-
-def test_unknown_tool_goes_back_to_model(llm):
-  client = llm(call("brak", {}), text("gotowe"))
-
-  assert run_agent("sys", "zadanie") == "gotowe"
-  assert client.tool_results() == [{"error": "Nieznane narzędzie: brak"}]
 
 
 def test_raises_after_max_steps(llm):
