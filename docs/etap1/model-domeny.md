@@ -180,7 +180,7 @@ Budynki, sale i prowadzący mają pole `facultyIds`. Na razie zawiera jeden wydz
 
 Współrzędne i numery sal w przykładach są orientacyjne, prawdziwe wartości powstają w #6.
 
-Czas przejścia między budynkami liczony ze współrzędnych: odległość w linii prostej × `routeFactor` / `walkingSpeedKmh`. Obie wartości są w konfiguracji. `routeFactor` (np. 1.3) uwzględnia, że trasa piesza jest dłuższa niż linia prosta. Przejście musi zmieścić się w przerwie między zajęciami, inaczej jest to naruszenie.
+Czas przejścia między budynkami w minutach liczony ze współrzędnych: odległość w linii prostej w km × `routeFactor` / `walkingSpeedKmh` × 60. Obie wartości są w konfiguracji. `routeFactor` (np. 1.3) uwzględnia, że trasa piesza jest dłuższa niż linia prosta. Przejście musi zmieścić się w przerwie między zajęciami, inaczej jest to naruszenie.
 
 ### Sala
 

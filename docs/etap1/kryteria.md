@@ -18,7 +18,7 @@
 - **Koniec zajęć** wyliczamy ze `start`, `units` i przerw z `rulesSnapshot` (model domeny, sekcja o czasie).
 - **Kolejne zajęcia.** Dwa spotkania tego samego planu studenta, prowadzącego lub sali w tym samym dniu, bez innego spotkania pomiędzy.
 - **Przerwa** między kolejnymi zajęciami = start drugich − koniec pierwszych, w minutach.
-- **Czas przejścia** między budynkami = odległość w linii prostej ze współrzędnych × `routeFactor` / `walkingSpeedKmh`. Macierz czasów liczy percepcja (#10), a walidator liczy ją tym samym wzorem z wartości w `rulesSnapshot`.
+- **Czas przejścia** między budynkami w minutach = odległość w linii prostej ze współrzędnych w km × `routeFactor` / `walkingSpeedKmh` × 60. Przykład: 0,4 km × 1,3 / 5 km/h × 60 ≈ 6 min. Macierz czasów liczy percepcja (#10), a walidator liczy ją tym samym wzorem z wartości w `rulesSnapshot`.
 
 ## Reguły twarde
 
