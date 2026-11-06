@@ -10,6 +10,7 @@ Gdy tych warunków nie da się spełnić, forma zostaje bez puli (solver wybiera
 
 import random
 from collections import defaultdict
+from functools import cache
 
 from krok.model import Class, Config, Group, Lecturer, Program, Subject
 from krok.perception.measures import meeting_minutes
@@ -36,6 +37,7 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
     form_modes[(c.subject_id, c.form)].add(modes[c.id])
     by_form[(c.subject_id, c.form)].append(c)
 
+  @cache
   def minutes(key: tuple[str, str], mode: str) -> int:
     cs = [c for c in by_form[key] if modes[c.id] == mode]
     return max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, config.time_grid)

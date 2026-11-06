@@ -138,7 +138,7 @@ def build_state(ds: Dataset) -> EnvironmentState:
                      ("groups", [d for g in e.scope.group_ids or [] for d in descendants(g)])):
       for i in ids or []:
         cuts[i].append(cut)
-        if cut == window:
+        if cut[0] <= window[0] and cut[1] >= window[1]:  # obejmuje cały dzień zajęć
           blocks[key].append(i)
 
   def available(base: dict[str, list[Interval]], rid: str) -> dict[str, list[Interval]]:

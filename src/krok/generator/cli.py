@@ -4,11 +4,14 @@ import argparse
 import sys
 from pathlib import Path
 
+from krok.console import safe_output
+
 from .core import generate, summary, write
 from .settings import list_presets, load_preset
 
 
 def main(argv: list[str] | None = None) -> int:
+  safe_output()
   p = argparse.ArgumentParser(prog="krok-gen", description="Generator danych wydziału (K.R.O.K. #7)")
   p.add_argument("--preset", default="mini", help="nazwa presetu albo ścieżka do pliku .toml (domyślnie: mini)")
   p.add_argument("--seed", type=int, help="ziarno losowania (domyślnie z presetu)")
