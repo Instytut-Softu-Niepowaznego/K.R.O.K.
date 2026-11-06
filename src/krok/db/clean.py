@@ -133,14 +133,17 @@ def clean_records(source: str, raw: object, model: type[Model], limits: Threshol
       issues.append(Issue(source, rid, "nearDuplicate", "fixed", "id", f"kopia rekordu {first} pod innym id"))
       continue
 
-    for field, required in known.items():
-      if not required and field not in clean:
-        issues.append(Issue(source, rid, "missingField", "flagged", field, f"brak pola {field}, przyjęto wartość domyślną"))
+    missing = [field for field, required in known.items() if not required and field not in clean]
     try:
       item = model.model_validate(clean)
     except ValidationError as e:
-      issues.append(_validation_issue(source, rid, e.errors()[0]))
+      error = e.errors()[0]
+      if missing and not error["loc"]:  # walidator całego rekordu: brak pola opcjonalnego może go unieważnić, np. parentId grupy
+        issues.append(Issue(source, rid, "missingField", "rejected", missing[0], f"brak pola {missing[0]}: {error['msg']}"))
+      else:
+        issues.append(_validation_issue(source, rid, error))
       continue
+    issues += [Issue(source, rid, "missingField", "flagged", field, f"brak pola {field}, przyjęto wartość domyślną") for field in missing]
     # Dopiero poprawny rekord zajmuje id: błędny nie może zablokować poprawnego o tym samym id.
     by_id[rid] = full
     by_content[content].append(rid)

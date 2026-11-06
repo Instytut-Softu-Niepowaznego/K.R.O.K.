@@ -131,6 +131,20 @@ def test_invalid_record_does_not_block_valid_record_with_same_id():
   assert [i.kind for i in issues] == ["outlier"]
 
 
+def test_rejected_record_is_not_counted_as_flagged():
+  raw = [{"id": "L", "programId": "P", "kind": "lab", "semester": 1, "size": 12}]
+  items, issues = clean_records("groups.json", raw, Group)
+  assert items == []
+  assert [(i.kind, i.action, i.field) for i in issues] == [("missingField", "rejected", "parentId")]
+
+
+def test_kept_record_with_missing_optional_field_is_flagged():
+  raw = [{"id": "R", "programId": "P", "kind": "cohort", "semester": 1, "size": 60}]
+  items, issues = clean_records("groups.json", raw, Group)
+  assert [i.id for i in items] == ["R"]
+  assert [(i.kind, i.action, i.field) for i in issues] == [("missingField", "flagged", "parentId")]
+
+
 def test_rejected_group_takes_its_classes_and_children(tmp_path, engine):
   src = generated(tmp_path, "mini")
   groups = json.loads((src / "groups.json").read_text(encoding="utf-8"))
@@ -225,7 +239,7 @@ def test_failed_replacement_keeps_previous_data_and_event_log(tmp_path, engine):
 
   broken = ds.model_copy(deep=True)
   broken.groups[0].size = 10**30  # poprawne dla modelu, za duże dla SQLite
-  with pytest.raises(Exception):
+  with pytest.raises(OverflowError, match="too large"):
     write_dataset(engine, broken, [])
 
   assert read_dataset(engine) == before
@@ -248,6 +262,24 @@ def test_failure_rolls_back_all_events_and_their_log(tmp_path, engine):
   assert next(g for g in read_dataset(engine).groups if g.id == group.id).size == group.size
   with engine.connect() as conn:
     assert conn.execute(select(event_log)).all() == []
+
+
+def test_unreadable_list_file_is_reported(tmp_path, engine):
+  src = generated(tmp_path, "mini")
+  (src / "rooms.json").unlink()
+  (src / "rooms.json").mkdir()
+  ds, issues = import_dir(src, engine)
+  assert ds.rooms == []
+  assert ("rooms.json", "invalidValue") in {(i.source, i.kind) for i in issues}
+
+
+@pytest.mark.parametrize("name, content", [("config.json", b"\xff"), ("calendar.json", b"\xff"), ("calendar.json", b"[1]"),
+                                           ("calendar.json", b'"tekst"'), ("config.json", b"[1]")])
+def test_broken_required_file_stops_import_cleanly(tmp_path, engine, name, content):
+  src = generated(tmp_path, "mini")
+  (src / name).write_bytes(content)
+  with pytest.raises(ImportFailed, match=name):
+    import_dir(src, engine)
 
 
 def test_missing_config_stops_import(tmp_path, engine):

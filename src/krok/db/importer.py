@@ -4,7 +4,6 @@ import json
 import re
 from pathlib import Path
 
-from pydantic import ValidationError
 from sqlalchemy import Engine
 
 from krok.model import Calendar, Config, Dataset, DayOverride, reference_errors
@@ -27,6 +26,8 @@ def _read(path: Path, issues: list[Issue]):
     return json.loads(path.read_text(encoding="utf-8"))
   except FileNotFoundError:
     issues.append(Issue(path.name, None, "missingFile", "rejected", None, "brak pliku"))
+  except OSError as e:
+    issues.append(Issue(path.name, None, "invalidValue", "rejected", None, f"nie można odczytać pliku: {e}"))
   except (json.JSONDecodeError, UnicodeDecodeError) as e:
     issues.append(Issue(path.name, None, "invalidValue", "rejected", None, f"niepoprawny JSON: {e}"))
   return UNREADABLE
@@ -36,7 +37,7 @@ def _read_required(src: Path, name: str, model, unwrap=None):
   try:
     raw = json.loads((src / name).read_text(encoding="utf-8"))
     return model.model_validate(raw[unwrap] if unwrap else raw)
-  except (OSError, json.JSONDecodeError, KeyError, ValidationError) as e:
+  except (OSError, ValueError, KeyError, TypeError) as e:  # ValueError: zły JSON, UTF-8 i walidacja modelu
     raise ImportFailed(f"{name}: {e}") from e
 
 
