@@ -7,11 +7,13 @@ from krok.model import Dataset
 
 
 def _buildings(ds: Dataset) -> list[dict]:
+  """Budynki z salami. Nazwą budynku jest jego `id`."""
   return [{"name": b.id, "rooms": [{"number": r.number, "profession": r.type} for r in ds.rooms if r.building_id == b.id]}
           for b in ds.buildings]
 
 
 def _groups(ds: Dataset) -> list[dict]:
+  """Grupy z kursami. Nazwa kursu zawiera `id` zajęć."""
   subjects = {s.id: s for s in ds.subjects}
   courses: dict[str, list[dict]] = {}
   for c in ds.classes:
@@ -22,6 +24,7 @@ def _groups(ds: Dataset) -> list[dict]:
 
 
 def _workers(ds: Dataset) -> list[dict]:
+  """Prowadzący. Nazwa zawiera `id` osoby."""
   return [{"name": f"{lec.name} ({lec.id})", "Profesion": lec.competences, "FavouriteBuilding": lec.home_building_id}
           for lec in ds.lecturers]
 
@@ -30,4 +33,5 @@ VIEWS = {"buildings": _buildings, "student-groups": _groups, "workers": _workers
 
 
 def legacy_view(ds: Dataset, name: str) -> list[dict]:
+  """Dane w starym kształcie dla `buildings`, `student-groups` albo `workers`."""
   return VIEWS[name](ds)

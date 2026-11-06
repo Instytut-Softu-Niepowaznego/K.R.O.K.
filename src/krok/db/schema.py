@@ -34,6 +34,7 @@ metadata = MetaData()
 
 
 def _sql_type(annotation):
+  """Typ kolumny dla adnotacji pola modelu. Pola zagnieżdżone to JSON."""
   origin = get_origin(annotation)
   if origin is Annotated:
     return _sql_type(get_args(annotation)[0])
@@ -50,6 +51,7 @@ def _sql_type(annotation):
 
 
 def _entity_table(name: str, model: type[Model]) -> Table:
+  """Tabela encji zbudowana z pól modelu."""
   columns = []
   for field_name, field in model.model_fields.items():
     col = field.alias or field_name
@@ -90,6 +92,7 @@ event_log = Table(
 
 
 def db_path(path: str | Path | None = None) -> Path:
+  """Ścieżka bazy: argument, `KROK_DB` albo domyślna."""
   return Path(path or os.environ.get("KROK_DB") or DEFAULT_DB)
 
 
@@ -104,17 +107,20 @@ def connect(path: str | Path | None = None, *, create: bool = False) -> Engine:
 
   @event.listens_for(engine, "connect")
   def _on_connect(conn, _):
+    """Ustawia połączenie SQLite."""
     conn.isolation_level = None  # BEGIN wysyłamy sami: inaczej SAVEPOINT i DDL działają poza transakcją
     conn.execute("PRAGMA foreign_keys=ON")
 
   @event.listens_for(engine, "begin")
   def _on_begin(conn):
+    """Rozpoczyna prawdziwą transakcję."""
     conn.exec_driver_sql("BEGIN")
 
   return engine
 
 
 def _rows(items: Iterable[Model]) -> list[dict]:
+  """Encje jako wiersze do zapisu."""
   return [i.model_dump(mode="json") for i in items]
 
 
@@ -136,14 +142,17 @@ def write_dataset(engine: Engine, ds: Dataset, issues: list[Issue]) -> None:
 
 
 def read_document(conn: Connection, key: str):
+  """Czyta dokument JSON, np. `config`."""
   return conn.execute(select(documents.c.value).where(documents.c.key == key)).scalar_one()
 
 
 def write_document(conn: Connection, key: str, value) -> None:
+  """Zastępuje dokument JSON."""
   conn.execute(documents.update().where(documents.c.key == key).values(value=value))
 
 
 def read_dataset(engine: Engine) -> Dataset:
+  """Czyta całą bazę jako `Dataset`."""
   with engine.connect() as conn:
     data = {name: [ENTITIES[name].model_validate(dict(r)) for r in conn.execute(select(t)).mappings()] for name, t in TABLES.items()}
     return Dataset(config=Config.model_validate(read_document(conn, "config")),
@@ -151,6 +160,7 @@ def read_dataset(engine: Engine) -> Dataset:
 
 
 def read_issues(engine: Engine) -> list[Issue]:
+  """Czyta problemy z importu."""
   with engine.connect() as conn:
     return [Issue(r["source"], r["recordId"], r["kind"], r["action"], r["field"], r["message"])
             for r in conn.execute(select(import_issues).order_by(import_issues.c.id)).mappings()]
