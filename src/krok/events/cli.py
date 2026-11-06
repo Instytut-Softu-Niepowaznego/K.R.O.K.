@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from krok.console import safe_output
 from krok.generator import generate, load_preset, write
 from krok.model import dump_json, load_dataset
@@ -41,7 +43,15 @@ def _generate(args) -> int:
     return 2
 
   if args.data:
-    ds = load_dataset(args.data)
+    try:
+      ds = load_dataset(args.data)
+    except ValidationError as e:  # przed ValueError: ValidationError dziedziczy po ValueError
+      print(f"Dane w {args.data} nie przechodzą walidacji modelu ({e.error_count()} błędów), np. dane z szumem. "
+            "Zdarzenia generuj z czystych danych (ten sam preset i seed bez --noise).", file=sys.stderr)
+      return 2
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+      print(f"Nie można wczytać danych z {args.data}: {e}", file=sys.stderr)
+      return 2
     seed = args.seed if args.seed is not None else meta.get("seed", preset.seed)
     out = args.out or args.data
   else:
