@@ -15,7 +15,7 @@ import pytest
 def _run(module: str, args: list[str], hash_seed: str) -> None:
   env = {**os.environ, "PYTHONHASHSEED": hash_seed}
   code = f"import sys; from {module} import main; sys.exit(main(sys.argv[1:]))"
-  subprocess.run([sys.executable, "-c", code, *args], env=env, check=True, capture_output=True)
+  subprocess.run([sys.executable, "-c", code, *args], env=env, check=True)
 
 
 def _files(path: Path) -> dict[str, bytes]:
