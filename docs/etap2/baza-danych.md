@@ -3,12 +3,14 @@
 Baza SQLite trzyma dane wejściowe po czyszczeniu i stan po zdarzeniach z otoczenia. Czyta je harness, a wkrótce percepcja (#10, #11).
 
 ```bash
-uv run krok-gen --preset mini --noise --out data/generated/mini
+uv run krok-events generate --preset mini      # dane i events.jsonl w data/generated/mini
 uv run krok-db import data/generated/mini      # zastępuje zawartość bazy
-uv run krok-db events data/generated/kierunek/events.jsonl
+uv run krok-db events data/generated/mini/events.jsonl
 uv run krok-db report                          # liczby i przykłady
 uv run krok-db report --json raport.json
 ```
+
+Zdarzenia muszą pochodzić z tych samych danych, które są w bazie. Dane z szumem do testów importu daje `uv run krok-gen --preset mini --noise --out data/generated/mini-szum`.
 
 Plik bazy to `data/krok.db`. Inny można wskazać przez `--db` albo zmienną `KROK_DB`.
 
@@ -48,9 +50,11 @@ Prowadzący spoza bazy wypada tylko z puli, a przedmiot zostaje. Inaczej przez j
 | `keyTypo`, `unknownField` | literówka w nazwie pola, nieznane pole |
 | `missingField`, `missingFile` | brak pola, brak pliku |
 | `invalidValue`, `outlier` | zła wartość, wartość odstająca |
-| `exactDuplicate`, `nearDuplicate`, `duplicateId` | duplikaty |
+| `exactDuplicate`, `nearDuplicate`, `duplicateId`, `duplicateOverride` | duplikaty; przy dwóch `dayOverride` na ten sam dzień zostaje pierwszy |
 | `badReference` | odwołanie do czegoś, czego nigdy nie było |
 | `cascade` | skutek odrzucenia innego rekordu |
+
+Import i zdarzenia działają w transakcji. Nieudany zapis zostawia poprzednie dane i dziennik.
 
 Testy porównują wynik z `_noise.json`. Jedyne, czego nie da się wykryć, to literówka w odwołaniu, która trafia w inny istniejący `id`.
 
@@ -78,6 +82,6 @@ Ponowne odtworzenie tego samego pliku niczego nie zmienia w danych.
 
 ## Harness
 
-`get_data` czyta z bazy. `src/krok/db/legacy.py` zwraca dane w kształcie starego prototypu, bo tych pól używają prompt agenta i `validate_plan`. Widok można usunąć, gdy powstaną #13 i #17. Bez bazy narzędzie zwraca komunikat z poleceniem `krok-db import`.
+`get_data` czyta z bazy. `src/krok/db/legacy.py` zwraca dane w kształcie starego prototypu, bo tych pól używają prompt agenta i `validate_plan`. `validate_plan` rozpoznaje rekordy po `name`, więc nazwy zawierają unikalne `id`. Widok można usunąć, gdy powstaną #13 i #17. Bez bazy narzędzie zwraca komunikat z poleceniem `krok-db import`.
 
 Raport z `krok-db report` to punkt wyjścia dla raportu jakości z #11.

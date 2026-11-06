@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-from krok.db import ImportFailed, apply_events, build_report, connect, import_dir, read_dataset, read_issues
+from krok.db import ImportFailed, apply_events, build_report, connect, import_dir, read_dataset, read_issues, write_dataset
 from krok.db.cli import main
 from krok.db.clean import clean_records
 from krok.db.legacy import legacy_view
@@ -15,7 +15,20 @@ from krok.harness.plan import Lesson, validate
 from krok.harness.tools.get_data import load
 from krok.model import Group, Lecturer, reference_errors
 
-ACCEPTED_NOISE_MISSES = {"badReference"}  # literówka może trafić w inny istniejący id
+# Literówka w odwołaniu może trafić w inny istniejący id, więc tego nie da się wykryć.
+REFERENCE_TARGETS = {"programId": "programs", "parentId": "groups", "buildingId": "buildings", "homeBuildingId": "buildings",
+                     "subjectId": "subjects", "groupId": "groups", "lecturerId": "lecturers"}
+# Rekord z noise może też odpaść z powodu innego rekordu, a sala ze złym buildingId nie przechodzi walidacji id.
+EXPECTED_KINDS = {"keyTypo": {"keyTypo"}, "missingField": {"missingField"}, "outlier": {"outlier"},
+                  "badReference": {"badReference", "invalidValue", "cascade"}, "exactDuplicate": {"exactDuplicate"},
+                  "nearDuplicate": {"nearDuplicate"}}
+EXPECTED_ACTIONS = {"keyTypo": {"fixed"}, "missingField": {"rejected", "flagged"}, "outlier": {"rejected", "flagged"},
+                    "badReference": {"rejected"}, "exactDuplicate": {"fixed"}, "nearDuplicate": {"fixed"}}
+FIELD_CHECKED = {"keyTypo", "missingField", "outlier"}
+
+
+def same_field(issue_field: str | None, field: str) -> bool:
+  return (issue_field or "").replace("_", "").lower() == field.lower()
 
 
 @pytest.fixture
@@ -66,14 +79,17 @@ def test_noise_is_detected_and_database_stays_consistent(tmp_path, engine, name,
 
   ds, issues = import_dir(src, engine)
 
-  flagged = {(i.source, i.record_id) for i in issues}
-  known = {f"{name}.json": {x.id for x in getattr(ds, name)} for name in ("groups", "rooms", "lecturers", "subjects", "classes", "buildings")}
   for change in manifest:
     # Dla duplikatu z nowym id problem jest zapisany przy kopii.
     record = change["after"] if change["kind"] == "nearDuplicate" else change["id"]
-    if (change["file"], record) in flagged:
-      continue
-    assert change["kind"] in ACCEPTED_NOISE_MISSES and change["after"] in {i for ids in known.values() for i in ids}, change
+    found = [i for i in issues if (i.source, i.record_id) == (change["file"], record) and i.kind in EXPECTED_KINDS[change["kind"]]
+             and i.action in EXPECTED_ACTIONS[change["kind"]]]
+    if change["kind"] in FIELD_CHECKED:
+      found = [i for i in found if same_field(i.field, change["field"])]
+    if not found:
+      assert change["kind"] == "badReference", change
+      target = {x.id for x in getattr(ds, REFERENCE_TARGETS[change["field"]])}
+      assert change["after"] in target, change
   assert reference_errors(ds) == []
   assert read_dataset(engine) == ds
 
@@ -106,6 +122,13 @@ def test_same_id_with_other_content_keeps_first():
   items, issues = clean_records("groups.json", [{"id": "L", **base, "size": 12}, {"id": "L", **base, "size": 15}], Group)
   assert items[0].size == 12
   assert issues[0].kind == "duplicateId"
+
+
+def test_invalid_record_does_not_block_valid_record_with_same_id():
+  base = {"programId": "P", "parentId": "R", "kind": "lab", "semester": 1}
+  items, issues = clean_records("groups.json", [{"id": "L", **base, "size": -1}, {"id": "L", **base, "size": 12}], Group)
+  assert [i.size for i in items] == [12]
+  assert [i.kind for i in issues] == ["outlier"]
 
 
 def test_rejected_group_takes_its_classes_and_children(tmp_path, engine):
@@ -146,6 +169,85 @@ def test_missing_list_file_is_reported_not_fatal(tmp_path, engine):
   ds, issues = import_dir(src, engine)
   assert ds.classes == []
   assert ("classes.json", "missingFile") in {(i.source, i.kind) for i in issues}
+
+
+def test_invalid_faculties_shape_is_reported(tmp_path, engine):
+  src = generated(tmp_path, "mini")
+  (src / "faculties.json").write_text("[1]", encoding="utf-8")
+  ds, issues = import_dir(src, engine)
+  assert ds.faculties == []
+  assert ("faculties.json", "invalidValue") in {(i.source, i.kind) for i in issues}
+
+
+def test_missing_faculty_list_is_reported(tmp_path, engine):
+  src = generated(tmp_path, "mini")
+  faculties = json.loads((src / "faculties.json").read_text(encoding="utf-8"))
+  del faculties["programs"]
+  (src / "faculties.json").write_text(json.dumps(faculties), encoding="utf-8")
+  _, issues = import_dir(src, engine)
+  assert ("faculties.json", "missingField", "programs") in {(i.source, i.kind, i.field) for i in issues}
+
+
+@pytest.mark.parametrize("content", ["null", "{}", "0"])
+def test_list_file_with_wrong_shape_is_reported(tmp_path, engine, content):
+  src = generated(tmp_path, "mini")
+  (src / "rooms.json").write_text(content, encoding="utf-8")
+  ds, issues = import_dir(src, engine)
+  assert ds.rooms == []
+  assert ("rooms.json", "invalidValue") in {(i.source, i.kind) for i in issues}
+
+
+def test_second_day_override_is_dropped_once(tmp_path, engine):
+  src = generated(tmp_path, "mini")
+  calendar = json.loads((src / "calendar.json").read_text(encoding="utf-8"))
+  override = {"type": "dayOverride", "date": "2026-11-14", "followsDay": "Pn", "followsParity": None, "scope": None, "label": ""}
+  calendar["calendar"]["exceptions"] += [{"id": "O1", **override}, {"id": "O2", **override}]
+  (src / "calendar.json").write_text(json.dumps(calendar), encoding="utf-8")
+  groups = json.loads((src / "groups.json").read_text(encoding="utf-8"))
+  next(g for g in groups if g["kind"] == "lecture")["size"] = -1  # wymusza kilka rund usuwania
+  (src / "groups.json").write_text(json.dumps(groups), encoding="utf-8")
+
+  ds, issues = import_dir(src, engine)
+
+  assert reference_errors(ds) == []
+  assert [i.record_id for i in issues if i.kind == "duplicateOverride"] == ["O2"]
+  assert not [i for i in issues if i.source == "references"]
+  assert {"O1"} <= {x.id for x in read_dataset(engine).calendar.exceptions}
+
+
+def test_failed_replacement_keeps_previous_data_and_event_log(tmp_path, engine):
+  src, stream = stream_for("mini", tmp_path, 7)
+  ds, _ = import_dir(src, engine)
+  apply_events(engine, stream.lines)
+  before = read_dataset(engine)
+  with engine.connect() as conn:
+    logged = conn.execute(select(event_log)).all()
+
+  broken = ds.model_copy(deep=True)
+  broken.groups[0].size = 10**30  # poprawne dla modelu, za duże dla SQLite
+  with pytest.raises(Exception):
+    write_dataset(engine, broken, [])
+
+  assert read_dataset(engine) == before
+  with engine.connect() as conn:
+    assert conn.execute(select(event_log)).all() == logged
+
+
+def test_failure_rolls_back_all_events_and_their_log(tmp_path, engine):
+  ds, _ = import_dir(generated(tmp_path, "mini"), engine)
+  group = ds.groups[0]
+
+  def lines():
+    yield json.dumps({"id": "E-1", "timestamp": "2026-10-01T10:00:00", "type": "groupSizeChanged",
+                      "payload": {"groupId": group.id, "size": group.size + 1, "effectiveFrom": "2026-10-05"}})
+    raise RuntimeError("przerwany strumień")
+
+  with pytest.raises(RuntimeError):
+    apply_events(engine, lines())
+
+  assert next(g for g in read_dataset(engine).groups if g.id == group.id).size == group.size
+  with engine.connect() as conn:
+    assert conn.execute(select(event_log)).all() == []
 
 
 def test_missing_config_stops_import(tmp_path, engine):
@@ -272,6 +374,21 @@ def test_get_data_and_validate_read_from_database(tmp_path, engine, monkeypatch)
                   worker=workers[0]["name"])
   errors, _ = validate([lesson])
   assert any("jest typu" in e for e in errors)
+
+
+def test_legacy_names_stay_unique_when_entities_share_names(tmp_path, engine):
+  ds, _ = import_dir(generated(tmp_path, "mini"), engine)
+  for items in (ds.buildings, ds.lecturers, ds.subjects):
+    for item in items:
+      item.name = "ta sama nazwa"
+
+  courses = [(g["name"], c["name"]) for g in legacy_view(ds, "student-groups") for c in g["courses"]]
+  buildings = [b["name"] for b in legacy_view(ds, "buildings")]
+  workers = [w["name"] for w in legacy_view(ds, "workers")]
+
+  assert len(set(courses)) == len(courses) == len(ds.classes)
+  assert len(set(buildings)) == len(buildings)
+  assert len(set(workers)) == len(workers)
 
 
 def test_legacy_view_names_every_room(tmp_path, engine):

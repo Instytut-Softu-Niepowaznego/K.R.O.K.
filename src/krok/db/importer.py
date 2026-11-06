@@ -7,7 +7,7 @@ from pathlib import Path
 from pydantic import ValidationError
 from sqlalchemy import Engine
 
-from krok.model import Calendar, Config, Dataset, reference_errors
+from krok.model import Calendar, Config, Dataset, DayOverride, reference_errors
 from krok.model.dataset import LIST_FILES
 
 from .clean import Issue, Thresholds, clean_records
@@ -15,6 +15,7 @@ from .schema import ENTITIES, write_dataset
 
 FACULTY_LISTS = ["faculties", "fields", "programs"]
 REFERENCE_ERROR = re.compile(r"^(\w+)/(.+?)(?:/lecturerPools/\w+)?: (.*)$")
+UNREADABLE = object()  # problem jest już w raporcie; None to poprawny JSON `null`
 
 
 class ImportFailed(Exception):
@@ -28,7 +29,7 @@ def _read(path: Path, issues: list[Issue]):
     issues.append(Issue(path.name, None, "missingFile", "rejected", None, "brak pliku"))
   except (json.JSONDecodeError, UnicodeDecodeError) as e:
     issues.append(Issue(path.name, None, "invalidValue", "rejected", None, f"niepoprawny JSON: {e}"))
-  return None
+  return UNREADABLE
 
 
 def _read_required(src: Path, name: str, model, unwrap=None):
@@ -52,16 +53,33 @@ def _trim_pools(subjects, lecturers, issues: list[Issue]) -> None:
       s.lecturer_pools = pools or None
 
 
+def _drop_repeated_overrides(calendar, issues: list[Issue]) -> None:
+  """Dzień ma najwyżej jeden dayOverride, więc zostaje pierwszy."""
+  dates = set()
+  kept = []
+  for exception in calendar.exceptions:
+    if isinstance(exception, DayOverride):
+      if exception.date in dates:
+        issues.append(Issue("calendar.json", exception.id, "duplicateOverride", "rejected", "date",
+                            f"drugi dayOverride na {exception.date}: zostaje pierwszy"))
+        continue
+      dates.add(exception.date)
+    kept.append(exception)
+  calendar.exceptions[:] = kept
+
+
 def _resolve_references(parts: dict[str, list], config, calendar, rejected: set[str], issues: list[Issue]) -> Dataset:
   """Usuwa rekordy z wiszącymi odwołaniami, aż dane będą spójne. Usunięcie rekordu może osierocić następne."""
+  _drop_repeated_overrides(calendar, issues)
   while True:
     _trim_pools(parts["subjects"], parts["lecturers"], issues)
     ds = Dataset(config=config, calendar=calendar, **parts)
     removed = False
+    unresolved = []
     for error in dict.fromkeys(reference_errors(ds)):
       match = REFERENCE_ERROR.match(error)
       if not match:
-        issues.append(Issue("references", None, "badReference", "flagged", None, error))
+        unresolved.append(error)
         continue
       name, rid, message = match.groups()
       items = calendar.exceptions if name == "calendar" else parts[name]
@@ -73,7 +91,21 @@ def _resolve_references(parts: dict[str, list], config, calendar, rejected: set[
       kind = "cascade" if message.split()[-1] in rejected else "badReference"
       issues.append(Issue("calendar.json" if name == "calendar" else f"{name}.json", rid, kind, "rejected", None, message))
     if not removed:
+      issues += [Issue("references", None, "badReference", "flagged", None, error) for error in unresolved]
       return ds
+
+
+def _faculty_lists(raw, issues: list[Issue]) -> dict[str, object]:
+  """Listy z faculties.json. Zły kształt pliku i brakujące klucze trafiają do raportu."""
+  if raw is UNREADABLE:
+    return {key: [] for key in FACULTY_LISTS}
+  if not isinstance(raw, dict):
+    issues.append(Issue("faculties.json", None, "invalidValue", "rejected", None, "plik nie jest obiektem"))
+    return {key: [] for key in FACULTY_LISTS}
+  for key in FACULTY_LISTS:
+    if key not in raw:
+      issues.append(Issue("faculties.json", None, "missingField", "rejected", key, f"brak listy {key}"))
+  return {key: raw.get(key, []) for key in FACULTY_LISTS}
 
 
 def clean_dir(src_dir: str | Path, limits: Thresholds = Thresholds()) -> tuple[Dataset, list[Issue]]:
@@ -84,9 +116,11 @@ def clean_dir(src_dir: str | Path, limits: Thresholds = Thresholds()) -> tuple[D
   parts: dict[str, list] = {}
   rejected: set[str] = set()
 
-  faculties = _read(src / "faculties.json", issues) or {}
-  sources = {key: ("faculties.json", faculties.get(key, [])) for key in FACULTY_LISTS}
-  sources |= {key: (name, _read(src / name, issues) or []) for key, name in LIST_FILES.items()}
+  faculties = _faculty_lists(_read(src / "faculties.json", issues), issues)
+  sources = {key: ("faculties.json", raw) for key, raw in faculties.items()}
+  for key, name in LIST_FILES.items():
+    raw = _read(src / name, issues)
+    sources[key] = (name, [] if raw is UNREADABLE else raw)
   for key, (name, raw) in sources.items():
     parts[key], found = clean_records(name, raw, ENTITIES[key], limits)
     issues += found

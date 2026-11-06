@@ -132,17 +132,18 @@ def clean_records(source: str, raw: object, model: type[Model], limits: Threshol
     if first is not None:
       issues.append(Issue(source, rid, "nearDuplicate", "fixed", "id", f"kopia rekordu {first} pod innym id"))
       continue
-    by_id[rid] = full
-    by_content[content].append(rid)
 
+    for field, required in known.items():
+      if not required and field not in clean:
+        issues.append(Issue(source, rid, "missingField", "flagged", field, f"brak pola {field}, przyjęto wartość domyślną"))
     try:
       item = model.model_validate(clean)
     except ValidationError as e:
       issues.append(_validation_issue(source, rid, e.errors()[0]))
       continue
-    for field, required in known.items():
-      if not required and field not in clean:
-        issues.append(Issue(source, rid, "missingField", "flagged", field, f"brak pola {field}, przyjęto wartość domyślną"))
+    # Dopiero poprawny rekord zajmuje id: błędny nie może zablokować poprawnego o tym samym id.
+    by_id[rid] = full
+    by_content[content].append(rid)
     items.append(item)
   _flag_outliers(source, items, limits, issues)
   return items, issues

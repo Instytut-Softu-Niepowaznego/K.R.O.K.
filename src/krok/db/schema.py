@@ -103,8 +103,13 @@ def connect(path: str | Path | None = None, *, create: bool = False) -> Engine:
   engine = create_engine(URL.create("sqlite", database=str(target)))
 
   @event.listens_for(engine, "connect")
-  def _foreign_keys(conn, _):
+  def _on_connect(conn, _):
+    conn.isolation_level = None  # BEGIN wysyłamy sami: inaczej SAVEPOINT i DDL działają poza transakcją
     conn.execute("PRAGMA foreign_keys=ON")
+
+  @event.listens_for(engine, "begin")
+  def _on_begin(conn):
+    conn.exec_driver_sql("BEGIN")
 
   return engine
 
@@ -114,10 +119,13 @@ def _rows(items: Iterable[Model]) -> list[dict]:
 
 
 def write_dataset(engine: Engine, ds: Dataset, issues: list[Issue]) -> None:
-  """Zastępuje całą zawartość bazy, razem z dziennikiem zdarzeń: import to nowy punkt startu."""
-  metadata.drop_all(engine)
-  metadata.create_all(engine)
+  """Zastępuje całą zawartość bazy, razem z dziennikiem zdarzeń: import to nowy punkt startu.
+
+  Wszystko dzieje się w jednej transakcji, więc nieudany zapis zostawia poprzednie dane.
+  """
   with engine.begin() as conn:
+    metadata.drop_all(conn)
+    metadata.create_all(conn)
     conn.execute(documents.insert(), [{"key": "config", "value": ds.config.model_dump(mode="json")},
                                       {"key": "calendar", "value": ds.calendar.model_dump(mode="json")}])
     for name, table in TABLES.items():
