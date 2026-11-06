@@ -134,6 +134,28 @@ class NoiseSpec(Strict):
   duplicate_rate: float = 0.01
 
 
+class EventSpec(Strict):
+  """Strumień zdarzeń z otoczenia (#8)."""
+
+  per_week: float = Field(default=4.0, gt=0)  # średnia liczba zdarzeń na tydzień (proces Poissona)
+  weights: dict[str, float] = {
+    "roomUnavailable": 3, "lecturerAbsent": 4, "lecturerAvailabilityChanged": 2, "groupSizeChanged": 3,
+    "groupAdded": 1, "subjectAdded": 1, "calendarExceptionAdded": 1,
+  }
+  start_before_semester_days: int = 7  # zdarzenia zaczynają się tydzień przed semestrem
+  notice_days: IntRange = (0, 10)  # ile dni przed obowiązywaniem system dostaje informację
+  long_share: float = Field(default=0.3, ge=0, le=1)  # część blokad sal i nieobecności długich (≥ 2 tygodnie)
+  short_days: IntRange = (1, 5)
+  long_days: IntRange = (14, 60)
+  partial_day_share: float = Field(default=0.3, ge=0, le=1)  # blokady sal tylko na część dnia
+  size_change: IntRange = (1, 5)
+  error_rate: float = Field(default=0.1, ge=0, le=1)  # część zdarzeń celowo błędnych
+  error_weights: dict[str, float] = {
+    "badReference": 3, "missingField": 2, "invalidValue": 2, "unknownType": 1, "duplicate": 1, "outOfOrder": 1,
+    "malformedJson": 1,
+  }
+
+
 class Preset(Strict):
   name: str
   description: str = ""
@@ -153,6 +175,7 @@ class Preset(Strict):
   calendar: CalendarSpec = CalendarSpec()
   edge_cases: EdgeCaseSpec = EdgeCaseSpec()
   noise: NoiseSpec = NoiseSpec()
+  events: EventSpec = EventSpec()
 
 
 def _merge(base: dict, over: dict) -> dict:
