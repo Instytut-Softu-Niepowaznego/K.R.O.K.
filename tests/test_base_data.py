@@ -10,7 +10,7 @@ import pytest
 from pydantic import ValidationError
 
 from krok.generator import generate, load_preset
-from krok.generator.settings import load_catalog
+from krok.generator.settings import PRESETS_DIR, load_catalog
 from krok.model import Building, Config, Room
 
 BASE = Path(__file__).parent.parent / "src/krok/data/wj"
@@ -75,6 +75,19 @@ def test_every_competence_has_home_building_with_rooms():
   for competence in load_catalog(load_preset("wydzial").catalog).competence:
     assert competence.home_buildings, competence.id
     assert set(competence.home_buildings) <= allowed, competence.id
+
+
+def test_home_building_fallback_skips_buildings_without_rooms(tmp_path):
+  """Katalog bez `home_buildings` nie może dać prowadzącemu budynku bez sal, np. P4."""
+  catalog = (PRESETS_DIR / "katalog-wj.toml").read_text(encoding="utf-8")
+  custom = tmp_path / "katalog.toml"
+  custom.write_text(re.sub(r"^home_buildings = .*\n", "", catalog, flags=re.M), encoding="utf-8")
+  preset = load_preset("kierunek")
+  preset.catalog = str(custom)
+
+  ds = generate(preset).dataset
+
+  assert {lec.home_building_id for lec in ds.lecturers} <= {r.building_id for r in ds.rooms}
 
 
 @pytest.mark.parametrize("preset", ["mini", "kierunek", "wydzial", "edge-cases"])
