@@ -1,0 +1,29 @@
+# Mały wydział z celowo wstrzykniętymi przypadkami brzegowymi (docs/etap1/model-domeny.md, „Generator (#7)”).
+# Lista wstrzykniętych przypadków i ich id trafia do _meta.json.
+name = "edge-cases"
+description = "Informatyka inż. dzienne + zaoczne (3. semestr) z przypadkami brzegowymi"
+
+[[fields]]
+id = "INF"
+name = "Informatyka"
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "full-time"
+  semesters = 7
+  active_semesters = [3]
+  cohort_size = [60, 60]
+  attrition_per_year = 0.0
+  subjects_per_semester = [5, 5]
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "part-time"
+  semesters = 8
+  active_semesters = [3]
+  cohort_size = [30, 30]
+  attrition_per_year = 0.0
+  subjects_per_semester = [4, 4]
+
+[edge_cases]
+enabled = true

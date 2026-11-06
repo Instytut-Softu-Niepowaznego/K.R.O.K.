@@ -1,0 +1,71 @@
+{
+  "timeGrid": {
+    "days": [
+      "Pn",
+      "Wt",
+      "Śr",
+      "Cz",
+      "Pt",
+      "So",
+      "Nd"
+    ],
+    "daysByStudyMode": {
+      "full-time": [
+        "Pn",
+        "Wt",
+        "Śr",
+        "Cz",
+        "Pt"
+      ],
+      "part-time": [
+        "So",
+        "Nd"
+      ]
+    },
+    "dayStart": "07:30",
+    "dayEnd": "20:00",
+    "unitMinutes": 45,
+    "startStepMinutes": 5,
+    "allowedStartTimes": null,
+    "breaks": {
+      "innerMinutes": 10,
+      "minBetweenClassesMinutes": 5,
+      "overrides": [
+        {
+          "from": "16:00",
+          "to": "17:00",
+          "innerMinutes": 5
+        }
+      ]
+    }
+  },
+  "roomTypes": [
+    "lecture-hall",
+    "classroom",
+    "lab-it",
+    "lab-electronics"
+  ],
+  "walkingSpeedKmh": 5,
+  "rules": [
+    {
+      "id": "max-jednostek-dziennie",
+      "enabled": true,
+      "kind": "hard",
+      "params": {
+        "maxUnits": 10
+      }
+    },
+    {
+      "id": "okienka-studentow",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 5
+    },
+    {
+      "id": "przejscia-miedzy-budynkami",
+      "enabled": true,
+      "kind": "soft",
+      "weight": 2
+    }
+  ]
+}

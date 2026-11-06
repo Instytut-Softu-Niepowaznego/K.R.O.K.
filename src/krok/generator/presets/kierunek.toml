@@ -1,0 +1,34 @@
+# Jeden kierunek w całości: inż. i mgr, dzienne i zaoczne.
+name = "kierunek"
+description = "Informatyka: inż. i mgr, studia dzienne i zaoczne, semestr zimowy"
+
+[[fields]]
+id = "INF"
+name = "Informatyka"
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "full-time"
+  semesters = 7
+  cohort_size = [160, 190]
+
+  [[fields.programs]]
+  degree = "inz"
+  study_mode = "part-time"
+  semesters = 8
+  cohort_size = [50, 70]
+  subjects_per_semester = [4, 6]
+
+  [[fields.programs]]
+  degree = "mgr"
+  study_mode = "full-time"
+  semesters = 3
+  cohort_size = [50, 70]
+  subjects_per_semester = [4, 6]
+
+  [[fields.programs]]
+  degree = "mgr"
+  study_mode = "part-time"
+  semesters = 4
+  cohort_size = [30, 45]
+  subjects_per_semester = [4, 5]
