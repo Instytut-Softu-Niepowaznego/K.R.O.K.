@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from krok.console import safe_output
+from krok.console import output_closed, safe_output
 from krok.generator import generate, load_preset, write
 from krok.model import dump_json, load_dataset, reference_errors
 
@@ -81,17 +81,25 @@ def _replay(args) -> int:
   if not args.file.exists():
     print(f"Nie ma pliku {args.file}", file=sys.stderr)
     return 2
-  try:
-    for item in replay(args.file, args.speed):
-      if item.event:
-        if not args.errors_only:
-          print(f"✓ {item.line:4} {item.event.timestamp:%Y-%m-%d %H:%M} {item.event.id} {item.event.type}")
-      else:
-        print(f"✗ {item.line:4} {item.error}")
-  except (OSError, UnicodeDecodeError) as e:  # brak uprawnień, katalog zamiast pliku, plik nie w UTF-8
-    print(f"Nie można odczytać {args.file}: {e}", file=sys.stderr)
-    return 2
-  return 0
+  items = replay(args.file, args.speed)
+  while True:
+    # Błędy wejścia i wyjścia osobno: BrokenPipeError też jest OSError, a nie oznacza złego pliku.
+    try:
+      item = next(items)
+    except StopIteration:
+      return 0
+    except (OSError, UnicodeDecodeError) as e:  # brak uprawnień, katalog zamiast pliku, plik nie w UTF-8
+      print(f"Nie można odczytać {args.file}: {e}", file=sys.stderr)
+      return 2
+    if item.event and args.errors_only:
+      continue
+    line = (f"✓ {item.line:4} {item.event.timestamp:%Y-%m-%d %H:%M} {item.event.id} {item.event.type}" if item.event
+            else f"✗ {item.line:4} {item.error}")
+    try:
+      print(line, flush=True)
+    except BrokenPipeError:  # odbiorca nie chce więcej danych: to nie błąd odczytu
+      output_closed()
+      return 0
 
 
 def main(argv: list[str] | None = None) -> int:
