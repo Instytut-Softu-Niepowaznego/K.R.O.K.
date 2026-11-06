@@ -81,12 +81,16 @@ def _replay(args) -> int:
   if not args.file.exists():
     print(f"Nie ma pliku {args.file}", file=sys.stderr)
     return 2
-  for item in replay(args.file, args.speed):
-    if item.event:
-      if not args.errors_only:
-        print(f"✓ {item.line:4} {item.event.timestamp:%Y-%m-%d %H:%M} {item.event.id} {item.event.type}")
-    else:
-      print(f"✗ {item.line:4} {item.error}")
+  try:
+    for item in replay(args.file, args.speed):
+      if item.event:
+        if not args.errors_only:
+          print(f"✓ {item.line:4} {item.event.timestamp:%Y-%m-%d %H:%M} {item.event.id} {item.event.type}")
+      else:
+        print(f"✗ {item.line:4} {item.error}")
+  except (OSError, UnicodeDecodeError) as e:  # brak uprawnień, katalog zamiast pliku, plik nie w UTF-8
+    print(f"Nie można odczytać {args.file}: {e}", file=sys.stderr)
+    return 2
   return 0
 
 

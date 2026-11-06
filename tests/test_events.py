@@ -310,3 +310,14 @@ def test_cli_generate_from_data_with_broken_references_is_exit_2(tmp_path, capsy
   (tmp_path / "groups.json").write_text(json.dumps(groups))
   assert main(["generate", "--data", str(tmp_path), "-q"]) == 2
   assert "spójności" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("broken", ["utf8", "directory"])
+def test_cli_replay_unreadable_file_is_exit_2(tmp_path, broken, capsys):
+  path = tmp_path / "zdarzenia.jsonl"
+  if broken == "utf8":
+    path.write_bytes(b"\xff\xfe zly utf8\n")
+  else:
+    path.mkdir()
+  assert main(["replay", str(path)]) == 2
+  assert "Nie można odczytać" in capsys.readouterr().err
