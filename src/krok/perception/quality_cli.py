@@ -75,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
           print(e, file=sys.stderr)
           return 2
         if args.events:
-          apply_events(engine, args.events)
+          try:
+            apply_events(engine, args.events)  # w transakcji: nieudany odczyt niczego nie zostawia w bazie
+          except (OSError, UnicodeDecodeError) as e:
+            print(f"Nie można odczytać zdarzeń z {args.events}: {e}", file=sys.stderr)
+            return 2
         try:
           report = _report(engine, args, args.noise_manifest or args.data / "_noise.json", events_manifest)
         except ManifestError as e:

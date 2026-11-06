@@ -258,3 +258,16 @@ def test_load_manifests_accepts_both_noise_shapes(tmp_path):
   (tmp_path / "_events.json").write_text(json.dumps({"errorsList": [{"line": 3, "kind": "duplicate"}]}))
   assert load_manifests(tmp_path / "lista.json", tmp_path / "_events.json") == ([entry], [{"line": 3, "kind": "duplicate"}])
   assert load_manifests(tmp_path / "obiekt.json", None)[0] == [entry]
+
+
+@pytest.mark.parametrize("broken", ["utf8", "directory"])
+def test_cli_unreadable_events_file_is_exit_2(tmp_path, broken):
+  """Plik zdarzeń nie w UTF-8 albo nieczytelny (tu: katalog zamiast pliku) daje kod 2, a nie traceback."""
+  from krok.generator.cli import main as gen_main
+  assert gen_main(["--preset", "mini", "--out", str(tmp_path / "dane"), "-q"]) == 0
+  events = tmp_path / "zdarzenia.jsonl"
+  if broken == "utf8":
+    events.write_bytes(b"\xff\xfe zly utf8\n")
+  else:
+    events.mkdir()
+  assert main(["--data", str(tmp_path / "dane"), "--events", str(events), "-q"]) == 2
