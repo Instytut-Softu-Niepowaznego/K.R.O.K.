@@ -12,7 +12,7 @@ from krok.generator.core import load_generated
 from krok.generator.curriculum import FORM_GROUP_KIND
 from krok.generator.lecturers import available_minutes
 from krok.model import dataset_from_files, reference_errors, to_minutes
-from krok.perception.measures import meeting_minutes
+from krok.perception.measures import fits, meeting_minutes
 
 
 def expected_week_units(classes) -> int:
@@ -161,13 +161,17 @@ def test_lecturer_pools_cover_modes_and_demand(results, name):
       for m in {gmode[c.group_id] for c in cs}:
         weekend = m == "part-time"
         assert any(any((a.day in ("So", "Nd")) == weekend for a in x.availability) for x in members), (s.id, form, m)
-      assert sum(x.max_units_weekly for x in members) >= expected_week_units(cs), (s.id, form)  # jak limit-puli
       slack = load_preset(name).lecturers.slack
+      assert sum(x.max_units_weekly for x in members) >= expected_week_units(cs) * slack, (s.id, form)
       for m in {gmode[c.group_id] for c in cs}:
         in_mode = [c for c in cs if gmode[c.group_id] == m]
         minutes = max(sum(c.meetings_per_week * meeting_minutes(c.units_per_meeting, ds.config.time_grid)
                           for c in in_mode if c.parity in ("every", w)) for w in ("A", "B"))
         assert sum(available_minutes(x, m, ds.config) for x in members) >= minutes * slack, (s.id, form, m)
+        meeting = max(meeting_minutes(c.units_per_meeting, ds.config.time_grid) for c in in_mode)
+        days = ds.config.time_grid.days_by_study_mode[m]
+        assert any(fits((to_minutes(a.from_), to_minutes(a.to)), meeting, ds.config.time_grid)
+                   for x in members for a in x.availability if a.day in days), (s.id, form, m)  # ktoś zmieści spotkanie
 
 
 def test_noise_changes_only_noisy_files_and_is_logged():
@@ -201,3 +205,41 @@ def test_cli(tmp_path, capsys):
   assert (tmp_path / "classes.json").exists() and (tmp_path / "_noise.json").exists()
   assert main(["--preset", "nie-ma-takiego"]) == 2
   assert main(["--list"]) == 0
+
+
+@pytest.mark.parametrize("name", CLEAN)
+def test_competence_limits_cover_peak_demand(results, name):
+  """Rzeczywiście wylosowane limity (nie szacunek) pokrywają zapotrzebowanie w gorszym tygodniu × slack."""
+  ds = results[name].dataset
+  slack = load_preset(name).lecturers.slack
+  mode = {p.id: p.study_mode for p in ds.programs}
+  gmode = {g.id: mode[g.program_id] for g in ds.groups}
+  comp = {s.id: s.competence for s in ds.subjects}
+  for k in set(comp.values()):
+    cs = [c for c in ds.classes if comp[c.subject_id] == k]
+    staff = [lec for lec in ds.lecturers if k in lec.competences]
+    need = {m: expected_week_units([c for c in cs if gmode[c.group_id] == m]) for m in {gmode[c.group_id] for c in cs}}
+    assert sum(lec.max_units_weekly for lec in staff) >= sum(need.values()) * slack, k
+    for m, units in need.items():
+      in_mode = [lec for lec in staff if available_minutes(lec, m, ds.config)]
+      assert sum(lec.max_units_weekly for lec in in_mode) >= units * slack, (k, m)
+
+
+def test_zero_availability_draws_do_not_stop_staffing():
+  """Wzorzec, który czasem losuje 0 dni, nie zatrzymuje dobierania prowadzących."""
+  preset = load_preset("kierunek")
+  for p in preset.lecturers.patterns.values():
+    p.days = (0, p.days[1])
+  ds = generate(preset).dataset
+  assert reference_errors(ds) == []
+  from krok.perception import analyze
+  assert analyze(ds)[1].verdict == "no-obstacles-found"
+
+
+def test_impossible_lecturer_preset_is_reported():
+  preset = load_preset("mini")
+  for p in preset.lecturers.patterns.values():
+    p.days = (0, 0)
+  preset.lecturers.external_days = (0, 0)
+  with pytest.raises(ValueError, match="Nie da się dobrać prowadzących"):
+    generate(preset)

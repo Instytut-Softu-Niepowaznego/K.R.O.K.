@@ -302,14 +302,13 @@ class _Checker:
     by_group = defaultdict(list)
     for info in self.s.classes.values():
       by_group[info.cls.group_id].append(info)
-    day_start, day_end = day_window(self.grid)
     max_units = _max_units(self.ds)
     mode = {p.id: p.study_mode for p in self.ds.programs}
     group_rules = (*SCHEDULED, "kolizja-grup", "godziny-dnia")
     balances = []
     for leaf in self.s.leaf_groups:
       days = self.s.mode_days(mode[leaf.program_id])
-      available = len(days) * (day_end - day_start)
+      available = self.s.group_available_minutes(leaf.id, mode[leaf.program_id])
       cap_units = max_units * len(days) if max_units is not None else None
       worst = None
       for week in WEEKS:
@@ -322,7 +321,8 @@ class _Checker:
         ids = [i.cls.id for i in infos]
         if required > available:
           self.add("za-malo-czasu-grupy", "error", f"Plan studenta {leaf.id} (tydzień {week}) wymaga {required} min, "
-                   f"a dni zajęć dają {available} min", "komplet-godzin", ids, [leaf.id], group_rules)
+                   f"a dni zajęć (po blokadach) dają {available} min", "komplet-godzin", ids, [leaf.id],
+                   (*group_rules, "blokady-zasobow"))
         if cap_units is not None and units > cap_units:
           self.add("za-duzo-jednostek-grupy", "error", f"Plan studenta {leaf.id} (tydzień {week}) ma {units} jednostek, "
                    f"a max-jednostek-dziennie pozwala na {cap_units}", "max-jednostek-dziennie", ids, [leaf.id],

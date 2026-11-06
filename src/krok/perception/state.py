@@ -43,6 +43,7 @@ class EnvironmentState:
   travel: dict[str, dict[str, float]]
   lecturer_availability: dict[str, dict[str, list[Interval]]]  # prowadzący → dzień → przedziały
   room_availability: dict[str, dict[str, list[Interval]]]  # sala → dzień → przedziały (po blokadach)
+  group_availability: dict[str, dict[str, list[Interval]]]  # grupa → dzień → przedziały (po blokadach)
   rooms_by_type: dict[str, list[Room]]  # typ → sale dostępne w semestrze, od największej
   classes: dict[str, ClassInfo]
   leaf_groups: list[Group]
@@ -54,6 +55,11 @@ class EnvironmentState:
 
   def available_minutes(self, lecturer_id: str, mode: str) -> int:
     days = self.lecturer_availability.get(lecturer_id, {})
+    return sum(total(days.get(d, [])) for d in self.mode_days(mode))
+
+  def group_available_minutes(self, group_id: str, mode: str) -> int:
+    """Czas grupy w dniach trybu studiów po blokadach na cały semestr (także częściowych, z godzinami)."""
+    days = self.group_availability.get(group_id, {})
     return sum(total(days.get(d, [])) for d in self.mode_days(mode))
 
   def longest_window(self, lecturer_id: str, mode: str) -> int:
@@ -127,18 +133,44 @@ def build_state(ds: Dataset) -> EnvironmentState:
       stack += children[cur]
     return out
 
+  field_faculty = {f.id: f.faculty_id for f in ds.fields}
+  group_faculty = {g.id: field_faculty.get(next((p.field_id for p in ds.programs if p.id == g.program_id), ""))
+                   for g in ds.groups}
+
+  def targets(scope) -> dict[str, list[str]]:
+    """Zasoby objęte blokadą. Podane id (grupy z potomkami) zawężają do siebie, `facultyIds` do zasobów wydziału,
+    a pusty `scope` obejmuje wszystko (model domeny: „brak = wszystkie dane”)."""
+    faculties = set(scope.faculty_ids or [])
+    def in_faculty(ids_faculties):
+      return not faculties or bool(faculties & set(ids_faculties))
+    specific = any(x is not None for x in (scope.room_ids, scope.lecturer_ids, scope.group_ids))
+    if specific:
+      rooms = scope.room_ids or []
+      lecturers = scope.lecturer_ids or []
+      group_ids = [d for g in scope.group_ids or [] for d in descendants(g)]
+    else:
+      rooms, lecturers, group_ids = [r.id for r in ds.rooms], [lec.id for lec in ds.lecturers], [g.id for g in ds.groups]
+    room_fac = {r.id: r.faculty_ids for r in ds.rooms}
+    lec_fac = {lec.id: lec.faculty_ids for lec in ds.lecturers}
+    return {
+      "rooms": [i for i in rooms if in_faculty(room_fac.get(i, []))],
+      "lecturers": [i for i in lecturers if in_faculty(lec_fac.get(i, []))],
+      "groups": [i for i in group_ids if in_faculty([group_faculty.get(i)] if group_faculty.get(i) else [])],
+    }
+
   # Blokady na cały semestr działają jak brak dostępności (model domeny, „Kalendarz semestru i wyjątki”).
+  # Przy wyłączonej regule blokady-zasobow plan może je łamać, więc wtedy ich nie stosujemy.
   blocks = {"rooms": [], "lecturers": [], "groups": []}
   # (rodzaj zasobu, id) → wycięte przedziały (każdego dnia). Id są unikalne tylko w obrębie kolekcji,
   # więc blokada grupy nie może trafić do prowadzącego albo sali o tym samym id.
   cuts: dict[tuple[str, str], list[Interval]] = defaultdict(list)
-  for e in ds.calendar.exceptions:
+  apply_blocks = any(r.id == "blokady-zasobow" and r.enabled for r in ds.config.rules)
+  for e in ds.calendar.exceptions if apply_blocks else []:
     if not isinstance(e, ResourceBlock) or not _is_full_semester(e, ds):
       continue
     cut = (to_minutes(e.from_time), to_minutes(e.to_time)) if e.from_time else window
-    for key, ids in (("rooms", e.scope.room_ids), ("lecturers", e.scope.lecturer_ids),
-                     ("groups", [d for g in e.scope.group_ids or [] for d in descendants(g)])):
-      for i in ids or []:
+    for key, ids in targets(e.scope).items():
+      for i in ids:
         cuts[(key, i)].append(cut)
         if cut[0] <= window[0] and cut[1] >= window[1]:  # obejmuje cały dzień zajęć
           blocks[key].append(i)
@@ -160,6 +192,8 @@ def build_state(ds: Dataset) -> EnvironmentState:
       raw[a.day].append((to_minutes(a.from_), to_minutes(a.to)))
     lecturer_av[lec.id] = available(raw, "lecturers", lec.id)
   room_av = {r.id: available({d: [window] for d in grid.days}, "rooms", r.id) for r in ds.rooms}
+  # Czas grupy po blokadach; blokada przodka obejmuje potomków, bo targets() rozwija grupy w dół.
+  group_av = {g.id: available({d: [window] for d in grid.days}, "groups", g.id) for g in ds.groups}
 
   rooms_by_type = defaultdict(list)
   for r in sorted(ds.rooms, key=lambda r: (-r.capacity, r.id)):
@@ -186,6 +220,7 @@ def build_state(ds: Dataset) -> EnvironmentState:
 
   state = EnvironmentState(
     dataset=ds, travel=travel_matrix(ds.buildings, ds.config), lecturer_availability=lecturer_av, room_availability=room_av,
+    group_availability=group_av,
     rooms_by_type=dict(rooms_by_type), classes=classes, leaf_groups=[g for g in ds.groups if not children[g.id]],
     ancestors=ancestors, full_semester_blocks=blocks,
   )

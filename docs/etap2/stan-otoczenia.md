@@ -26,7 +26,12 @@ state, report = analyze(dataset)   # EnvironmentState, FeasibilityReport
 
 `state.export()` zapisuje to do `_environment.json`.
 
-Blokady (`resourceBlock`) na cały semestr działają jak brak dostępności, zgodnie z modelem domeny. Krótsze blokady nie zmieniają tygodniowego planu, więc tu ich nie uwzględniamy.
+Blokady (`resourceBlock`) na cały semestr działają jak brak dostępności, zgodnie z modelem domeny. Krótsze blokady nie zmieniają tygodniowego planu, więc tu ich nie uwzględniamy. Zasięg blokady:
+- podane `roomIds`, `lecturerIds` lub `groupIds` (grupy razem z potomkami), zawężone do wydziałów z `facultyIds`, jeśli są podane;
+- same `facultyIds` obejmują sale, prowadzących i grupy tych wydziałów;
+- pusty `scope` obejmuje wszystkie dane.
+
+Blokada z godzinami (`fromTime`–`toTime`) wycina te godziny każdego dnia, także z czasu grup w bilansie planu studenta. Blokady są zapisywane osobno dla sal, prowadzących i grup, bo `id` jest unikalne tylko w obrębie kolekcji. Przy wyłączonej regule `blokady-zasobow` plan może łamać blokady, więc percepcja ich nie stosuje.
 
 ## Raport wykonalności
 
@@ -47,7 +52,7 @@ Każde sprawdzenie zakłada, że obowiązują pewne reguły twarde. Jeśli któr
 | `limit-puli` | `limit-godzin-prowadzacego` | zajęcia z pulą przekraczają łączny limit puli |
 | `limit-kompetencji` | `limit-godzin-prowadzacego` | zajęcia z kompetencją przekraczają sumę limitów prowadzących z tą kompetencją |
 | `za-malo-sal` | `komplet-godzin` | czas zajęć sal danego typu, trybu i progu pojemności (grupy ≥ k osób → sale ≥ k miejsc) przekracza dostępny czas tych sal |
-| `za-malo-czasu-grupy` | `komplet-godzin` | plan studenta wymaga więcej czasu, niż dają dni zajęć |
+| `za-malo-czasu-grupy` | `komplet-godzin` | plan studenta wymaga więcej czasu, niż dają dni zajęć po blokadach grupy i jej przodków |
 | `za-duzo-jednostek-grupy` | `max-jednostek-dziennie` | plan studenta ma więcej jednostek niż `maxUnits` × liczba dni |
 | `spotkanie-ponad-limit-dzienny` | `max-jednostek-dziennie` | jedno spotkanie ma więcej jednostek niż `maxUnits` |
 | `zajecia-dluzsze-niz-dzien` | `godziny-dnia` | spotkanie dłuższe niż `dayStart`–`dayEnd` |
