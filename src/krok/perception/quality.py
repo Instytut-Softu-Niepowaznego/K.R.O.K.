@@ -79,10 +79,18 @@ def _ids_in(message: str | None) -> set[str]:
 
 
 def _referenced_id(message: str | None) -> str | None:
-  """Id z komunikatu bazy o złym odwołaniu, np. „nieznane rooms/P1-004” → P1-004."""
-  if not message or "/" not in message:
+  """Id z komunikatu bazy o złym odwołaniu („nieznane {tabela}/{id}”, #9), np. → P1-004. Id może mieć spacje i „/”."""
+  if not message or not message.startswith("nieznane "):
     return None
-  return message.rsplit(" ", 1)[-1].split("/", 1)[1]
+  return message.removeprefix("nieznane ").partition("/")[2] or None
+
+
+NO_ID = "(bez id)"
+
+
+def _ids(issues: list[Issue]) -> list[str]:
+  """Posortowane id rekordów z problemów. Rekord bez id (np. z brakującym polem id) też jest dowodem utraty."""
+  return sorted({i.record_id or NO_ID for i in issues})
 
 
 def _norm(field: str | None) -> str:
@@ -193,6 +201,8 @@ def _event_ids(obj) -> set[str]:
     for k, v in obj.items():
       if (k.endswith("Id") or k == "id") and isinstance(v, str):
         out.add(v)
+      elif k.endswith("Ids") and isinstance(v, list):  # np. scope.groupIds blokady z calendarExceptionAdded
+        out |= {x for x in v if isinstance(x, str)}
       else:
         out |= _event_ids(v)
   elif isinstance(obj, list):
@@ -248,8 +258,8 @@ def _feasibility(report: FeasibilityReport, state, issues: list[Issue], rows: li
   - unexplained: żadne z powyższych.
   """
   touched = {i.record_id for i in issues if i.record_id and (i.action in ("rejected", "flagged") or i.kind == "cascade")}
-  lost = {"lecturers": sorted({i.record_id for i in issues if i.source == "lecturers.json" and i.action == "rejected"}),
-          "rooms": sorted({i.record_id for i in issues if i.source == "rooms.json" and i.action == "rejected"})}
+  lost = {"lecturers": _ids([i for i in issues if i.source == "lecturers.json" and i.action == "rejected"]),
+          "rooms": _ids([i for i in issues if i.source == "rooms.json" and i.action == "rejected"])}
   changed = _changed_by_events(rows)
   causes = {"dataQuality": [], "events": [], "lostRecords": [], "unexplained": []}
   for p in report.problems:
@@ -316,8 +326,7 @@ def _group_growth(ds: Dataset, state, params: QualityParams) -> dict:
 def _room_capacity(issues: list[Issue]) -> dict:
   """L4: brak albo zła pojemność sali. Odrzucona sala jest nieużywalna, a oznaczona grozi przepełnieniem."""
   hit = [i for i in issues if i.source == "rooms.json" and _norm(i.field) == "capacity"]
-  return {"rejected": sorted({i.record_id for i in hit if i.action == "rejected"}),
-          "flagged": sorted({i.record_id for i in hit if i.action == "flagged"})}
+  return {"rejected": _ids([i for i in hit if i.action == "rejected"]), "flagged": _ids([i for i in hit if i.action == "flagged"])}
 
 
 def _heuristics(issues: list[Issue], params: QualityParams) -> dict:
@@ -389,14 +398,34 @@ def build_quality_report(engine: Engine, *, noise_manifest: list[dict] | None = 
   return report
 
 
-def load_manifests(noise_path: Path | None, events_path: Path | None) -> tuple[list | None, list | None]:
-  """Czyta `_noise.json` (lista albo {"changes": [...]}) i `_events.json` (`errorsList`). Brak pliku = None."""
-  noise = events = None
-  if noise_path and noise_path.exists():
-    data = json.loads(noise_path.read_text(encoding="utf-8"))
-    noise = data["changes"] if isinstance(data, dict) else data
-  if events_path and events_path.exists():
-    events = json.loads(events_path.read_text(encoding="utf-8")).get("errorsList", [])
+class ManifestError(ValueError):
+  """Manifest generatora nie istnieje (a został podany wprost), jest zepsuty albo ma zły kształt."""
+
+
+def _read_manifest(path: Path | None, required: bool, unwrap, keys: set[str]) -> list | None:
+  if path is None or (not path.exists() and not required):
+    return None  # domyślny manifest jest opcjonalny: bez niego nie ma wykrywalności
+  if not path.exists():
+    raise ManifestError(f"Nie ma manifestu {path}")
+  try:
+    entries = unwrap(json.loads(path.read_text(encoding="utf-8")))
+  except (OSError, UnicodeDecodeError, json.JSONDecodeError) as e:
+    raise ManifestError(f"Nie można wczytać manifestu {path}: {e}") from e
+  if not isinstance(entries, list) or not all(isinstance(e, dict) and keys <= set(e) for e in entries):
+    raise ManifestError(f"Manifest {path} ma zły kształt: oczekiwana lista wpisów z polami {', '.join(sorted(keys))}")
+  return entries
+
+
+def load_manifests(noise_path: Path | None, events_path: Path | None, *, noise_required: bool = False,
+                   events_required: bool = False) -> tuple[list | None, list | None]:
+  """Czyta `_noise.json` (lista albo {"changes": [...]}) i `_events.json` (`errorsList`).
+
+  Brak pliku daje None, chyba że ścieżka jest wymagana (podana wprost). Zepsuty plik albo zły kształt → ManifestError.
+  """
+  noise = _read_manifest(noise_path, noise_required, lambda d: d.get("changes") if isinstance(d, dict) else d,
+                         {"file", "id", "kind", "field", "after"})
+  events = _read_manifest(events_path, events_required, lambda d: d.get("errorsList") if isinstance(d, dict) else None,
+                          {"line", "kind"})
   return noise, events
 
 

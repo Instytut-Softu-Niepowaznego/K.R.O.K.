@@ -2,6 +2,7 @@
    uv run krok-quality --data data/generated/kierunek-szum --events data/generated/kierunek/events.jsonl"""
 
 import argparse
+import math
 import sys
 import tempfile
 from pathlib import Path
@@ -10,14 +11,16 @@ from krok.console import safe_output
 from krok.db import ImportFailed, apply_events, connect, db_path, import_dir
 from krok.model import dump_json
 
-from .quality import QualityParams, build_quality_report, load_manifests, render_markdown, render_text
+from .quality import ManifestError, QualityParams, build_quality_report, load_manifests, render_markdown, render_text
 
 REPORT_FILE = "_quality.json"
 MARKDOWN_FILE = "quality.md"
 
 
 def _report(engine, args, noise_path, events_path) -> dict:
-  noise, events = load_manifests(noise_path, events_path)
+  # Manifest podany wprost musi istnieć. Domyślne (z katalogu --data, obok --events) są opcjonalne.
+  noise, events = load_manifests(noise_path, events_path, noise_required=args.noise_manifest is not None,
+                                 events_required=args.events_manifest is not None)
   params = QualityParams(coordinate_error_m=args.coordinate_error_m, group_growth=args.group_growth,
                          availability_margin=args.availability_margin)
   return build_quality_report(engine, noise_manifest=noise, events_manifest=events, params=params)
@@ -44,8 +47,9 @@ def main(argv: list[str] | None = None) -> int:
   args = p.parse_args(argv)
 
   for name in ("coordinate_error_m", "group_growth"):
-    if getattr(args, name) < 0:
-      print(f"--{name.replace('_', '-')} nie może być ujemne", file=sys.stderr)
+    value = getattr(args, name)
+    if not math.isfinite(value) or value < 0:  # nan/inf wywracały obliczenia i dawały niepoprawny JSON
+      print(f"--{name.replace('_', '-')} musi być skończoną liczbą ≥ 0", file=sys.stderr)
       return 2
   if not 0 < args.availability_margin <= 1:
     print("--availability-margin musi być z zakresu (0, 1]", file=sys.stderr)
@@ -72,7 +76,11 @@ def main(argv: list[str] | None = None) -> int:
           return 2
         if args.events:
           apply_events(engine, args.events)
-        report = _report(engine, args, args.noise_manifest or args.data / "_noise.json", events_manifest)
+        try:
+          report = _report(engine, args, args.noise_manifest or args.data / "_noise.json", events_manifest)
+        except ManifestError as e:
+          print(e, file=sys.stderr)
+          return 2
       finally:
         engine.dispose()
   else:
@@ -83,6 +91,9 @@ def main(argv: list[str] | None = None) -> int:
       return 2
     try:
       report = _report(engine, args, args.noise_manifest, events_manifest)
+    except ManifestError as e:
+      print(e, file=sys.stderr)
+      return 2
     finally:
       engine.dispose()
     report["source"] = str(db_path(args.db))

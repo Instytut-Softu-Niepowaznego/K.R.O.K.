@@ -57,7 +57,9 @@ uv run krok-quality --db data/krok.db                     # baza po krok-db impo
 - `--db`: baza po `krok-db import` i `krok-db events`;
 - `--data`: katalog z danymi, importowany do tymczasowej bazy, więc `data/krok.db` się nie zmienia. Opcjonalnie dochodzi `--events` ze strumieniem zdarzeń.
 
-Założenia o niepewności to dane wejściowe, a nie stałe w kodzie: `--coordinate-error-m`, `--group-growth`, `--availability-margin`.
+Założenia o niepewności to dane wejściowe, a nie stałe w kodzie: `--coordinate-error-m`, `--group-growth`, `--availability-margin`. Muszą to być skończone liczby.
+
+Manifesty (`_noise.json` z katalogu `--data`, `_events.json` obok pliku `--events`) są opcjonalne: bez nich raport nie liczy wykrywalności. Manifest podany wprost (`--noise-manifest`, `--events-manifest`) musi istnieć. Zepsuty albo źle zbudowany manifest kończy się kodem 2, a nie cichym pominięciem wykrywalności.
 
 **Kategorie problemów.** Problemy z importu i ze zdarzeń są pogrupowane w kategorie, z liczbami per rodzaj i przykładami:
 
