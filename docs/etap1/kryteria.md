@@ -34,7 +34,7 @@ Plan z choćby jednym naruszeniem jest niepoprawny. Wartość reguły to liczba 
 | `czas-przejscia` | Przejście między budynkami mieści się w przerwie | kolejne zajęcia planu studenta lub prowadzącego w różnych budynkach, gdy przerwa < `minBetweenClassesMinutes` + czas przejścia | `walkingSpeedKmh` z konfiguracji |
 | `typ-sali` | Sala ma wymagany typ | spotkanie w sali o `type` różnym od `roomType` zajęć | — |
 | `pojemnosc-sali` | Sala mieści grupę | spotkanie w sali o `capacity` < `size` grupy, a także zajęcia, dla których żadna sala nie spełnia typu i pojemności (`classIds` w raporcie) | — |
-| `kompetencja-prowadzacego` | Prowadzący zna przedmiot | spotkanie prowadzącego bez `competence` przedmiotu | — |
+| `kompetencja-prowadzacego` | Prowadzący może prowadzić te zajęcia | spotkanie prowadzącego bez `competence` przedmiotu albo spoza `lecturerPools` dla formy zajęć, jeśli przedmiot ma pulę | — |
 | `dostepnosc-prowadzacego` | Prowadzący uczy tylko w godzinach dostępności | spotkanie, które nie mieści się w całości w jednym zakresie `availability` prowadzącego w tym dniu | — |
 | `blokady-zasobow` | Zajęcia omijają blokady na cały semestr | spotkanie w sali, z prowadzącym lub grupą objętą `resourceBlock` trwającym cały semestr | — |
 | `limit-godzin-prowadzacego` | Prowadzący nie przekracza limitu | prowadzący, którego suma `units` w tygodniu A lub B przekracza `maxUnitsWeekly` | — |
@@ -165,7 +165,7 @@ Punktem wyjścia jest obecny `validate` w `src/krok/harness/plan.py` (narzędzie
 | `spojnosc-planu` | sprawdza istnienie kursu, sali, prowadzącego | `id` zamiast nazw, zgodność `units`, `parity` i prowadzącego z zajęciami |
 | `kolizja-grup`, `kolizja-prowadzacych`, `kolizja-sal` | ta sama godzina i ta sama nazwa | przedziały czasu, hierarchia grup, parzystość |
 | `typ-sali` | jest | — |
-| `kompetencja-prowadzacego` | jest | — |
+| `kompetencja-prowadzacego` | sprawdza kompetencję | pula prowadzących `lecturerPools` |
 | `komplet-godzin` | porównuje godziny (brak i nadmiar) | liczenie spotkań po `unitsPerMeeting` |
 | `budynek-macierzysty` | ostrzeżenie | wartość liczbowa |
 | `przejscia-miedzy-budynkami` | ostrzeżenie dla prowadzącego | plany studentów, wartość liczbowa |

@@ -215,8 +215,21 @@ Czas przejścia między budynkami liczony ze współrzędnych (odległość / `w
 ### Przedmiot
 
 ```json
-{ "id": "BD", "name": "Bazy danych", "competence": "bazy-danych" }
+{
+  "id": "BD",
+  "name": "Bazy danych",
+  "competence": "bazy-danych",
+  "lecturerPools": {
+    "W": ["P-0042"],
+    "C": ["P-0042", "P-0051", "P-0077"],
+    "L": ["P-0051", "P-0077", "P-0090"]
+  }
+}
 ```
+
+- `lecturerPools` (opcjonalne): obsada przedmiotu, czyli lista prowadzących osobno dla każdej formy. Klucze to formy z `form` zajęć. Brak pola lub brak klucza dla formy = pula to wszyscy prowadzący z kompetencją `competence`.
+- Każdy prowadzący z puli musi mieć kompetencję `competence`. Pusta lista albo prowadzący bez kompetencji w puli to błąd danych wejściowych.
+- Pulę podajemy na poziomie przedmiotu, a nie zajęć: zmiana obsady to jedna edycja, niezależnie od liczby grup.
 
 ### Zajęcia (wymaganie)
 
@@ -238,7 +251,11 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 
 - `form`: `W` | `C` | `L` | `P`.
 - `unitsPerWeek` / `unitsPerMeeting` = liczba spotkań w tygodniu. Przykład: 4 / 2 = dwa spotkania po 1 h 40 min. Obie wartości to liczby całkowite ≥ 1, a `unitsPerWeek` musi być podzielne przez `unitsPerMeeting`. Inaczej to błąd danych wejściowych.
-- `lecturerId`: `null` = solver dobiera prowadzącego z kompetencją `subject.competence`. Podane `id` = przydział na sztywno.
+- `lecturerId`: podane `id` = przydział na sztywno. `null` = solver dobiera prowadzącego, kolejno:
+  1. z `subject.lecturerPools[form]`, jeśli przedmiot ma pulę dla tej formy,
+  2. w przeciwnym razie spośród wszystkich prowadzących z kompetencją `subject.competence`.
+- Podany `lecturerId` musi należeć do puli formy, jeśli pula istnieje. Inaczej to błąd danych wejściowych.
+- Wszystkie spotkania jednych zajęć prowadzi ta sama osoba. Przykład: ćwiczenia z BD dla grup C1, C2 i C3 to troje zajęć. Solver może przydzielić im różne osoby z puli, ale każda grupa ma jednego prowadzącego przez cały semestr.
 - Sala musi mieć `type` równy `roomType` i `capacity` ≥ `size` grupy. To twarde ograniczenie. Jeśli żadna sala go nie spełnia, solver nie przydziela zajęć, a raport zgłasza naruszenie z `classIds` tych zajęć.
 
 ## Wejścia (podsumowanie)
@@ -252,7 +269,7 @@ Jedno wymaganie = jedna forma przedmiotu dla jednej grupy.
 | `buildings.json` | budynki ze współrzędnymi | ręcznie (#6) |
 | `rooms.json` | sale | ręcznie (#6), pojemność może być generowana |
 | `lecturers.json` | prowadzący | generator (dostępność, limity) |
-| `subjects.json` | przedmioty | generator |
+| `subjects.json` | przedmioty z pulami prowadzących | generator |
 | `classes.json` | zajęcia do zaplanowania | generator |
 
 ### Generator (#7)
@@ -261,6 +278,7 @@ Generator wypełnia wszystkie encje tego modelu, razem z kalendarzem, wyjątkami
 
 - grupa większa od każdej sali danego typu
 - przedmiot bez prowadzącego z odpowiednią kompetencją
+- pula prowadzących, w której nikt nie jest dostępny w godzinach zajęć albo której łączny limit godzin nie wystarcza na wszystkie grupy
 - prowadzący bez dostępności albo z limitem niższym od przydzielonych zajęć
 - zajęcia 1-jednostkowe, zajęcia A/B i prowadzący uczący na studiach dziennych i zaocznych
 - zajęcia dłuższe niż najdłuższy ciągły zakres dostępności prowadzącego
