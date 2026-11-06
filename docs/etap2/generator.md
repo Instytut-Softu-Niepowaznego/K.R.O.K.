@@ -37,12 +37,12 @@ Przedmioty i kompetencje pochodzą z katalogu `presets/katalog-wj.toml`. Dla ka�
 
 1. **Grupy:** rocznik na 1. semestrze ma rozmiar `cohort_size` i maleje o `attrition_per_year` z każdym rokiem. Dzieli się na grupy wykładowe (≤ `lecture_max`), ćwiczeniowe (≤ `exercise`) i laboratoryjne (≤ `lab`). Domyślnie aktywne są semestry nieparzyste (semestr zimowy).
 2. **Zajęcia:** dla każdego rocznika losowane są przedmioty pasujące do kierunku, stopnia i semestru, każdy najwyżej raz w programie. Formy przypisane są do grup: W → wykładowe, C → ćwiczeniowe, L i P → laboratoryjne. Studia zaoczne mają `part_time_units_factor` jednostek. Część laboratoriów (`ab_share`) odbywa się co dwa tygodnie, grupy rodzeństwa na zmianę A i B.
-3. **Prowadzący:** liczba wynika z zapotrzebowania (jednostki × `slack` / średni limit), osobno dla studiów dziennych i zaocznych. Część zaocznych (`cross_mode_share`) prowadzi kadra dzienna z dodaną dostępnością w weekend. Dostępność jest w godzinach i powstaje według wzorców (`pelny`, `rano`, `popoludnie`, `czesciowy`). Prowadzący dostają też losowe dodatkowe kompetencje i budynek macierzysty zgodny z kompetencją.
-4. **Obsada (`lecturerPools`):** część przedmiotów (`lecturers.pool_share`, domyślnie 60%) dostaje pule prowadzących per forma. Pula zawiera tylko osoby z kompetencją przedmiotu, ma co najmniej jedną osobę dostępną w dni robocze i jedną w weekend, jeśli forma ma zajęcia dzienne i zaoczne, a jej łączny limit pokrywa zapotrzebowanie formy × `slack`. Gdy tego nie da się spełnić, forma zostaje bez puli i solver wybiera spośród wszystkich prowadzących z kompetencją.
+3. **Prowadzący:** liczba wynika z zapotrzebowania (jednostki × `slack` / średni limit), osobno dla studiów dziennych i zaocznych. Jeśli łączna dostępność prowadzących z kompetencją nie pokrywa czasu zajęć × `slack` (w gorszym tygodniu A/B), generator dodaje kolejnych. Bez tego prowadzący spoza wydziału, którzy mają 1–2 dni dostępności, nie wyrabiali się z matematyką i fizyką, co wykrył raport wykonalności (#10). Część zaocznych (`cross_mode_share`) prowadzi kadra dzienna z dodaną dostępnością w weekend. Dostępność jest w godzinach i powstaje według wzorców (`pelny`, `rano`, `popoludnie`, `czesciowy`). Prowadzący dostają też losowe dodatkowe kompetencje i budynek macierzysty zgodny z kompetencją.
+4. **Obsada (`lecturerPools`):** część przedmiotów (`lecturers.pool_share`, domyślnie 60%) dostaje pule prowadzących per forma. Pula zawiera tylko osoby z kompetencją przedmiotu, ma co najmniej jedną osobę dostępną w dni robocze i jedną w weekend, jeśli forma ma zajęcia dzienne i zaoczne, a jej łączny limit i łączna dostępność w każdym trybie pokrywają zapotrzebowanie formy × `slack`. Gdy tego nie da się spełnić, forma zostaje bez puli i solver wybiera spośród wszystkich prowadzących z kompetencją.
 5. **Kalendarz:** semestr, polskie święta (z Wielkanocą i Bożym Ciałem dla semestru letniego), przerwy, dni i godziny rektorskie, odpracowanie (`dayOverride`), blokady sal, zjazdy zaoczne co `part_time_every_weeks` tygodni oraz tygodnie bez parzystości (cały tydzień wolny).
 6. **Sale i budynki:** wczytywane z `src/krok/data/wj/` (#6). To dane **testowe**: układ sal jest prawdziwy, a typy i pojemności wymyślone. Brakująca `capacity` jest losowana z `room_capacity`.
 
-Na końcu całość przechodzi walidację modelu i sprawdzenie referencji (`krok.model.reference_errors`). Podsumowanie w CLI pokazuje zgrubny bilans sal i prowadzących. Dokładny bilans liczy #10.
+Na końcu całość przechodzi walidację modelu i sprawdzenie referencji (`krok.model.reference_errors`). Podsumowanie w CLI pokazuje zgrubny bilans sal i prowadzących. Dokładny bilans i raport wykonalności liczy `krok-env` (#10, [stan-otoczenia.md](stan-otoczenia.md)).
 
 ## Przypadki brzegowe (`edge-cases`)
 
@@ -51,13 +51,13 @@ Na końcu całość przechodzi walidację modelu i sprawdzenie referencji (`krok
 | `grupa-wieksza-od-sal` | grupa laboratoryjna większa od każdej sali swojego typu |
 | `przedmiot-bez-prowadzacego` | przedmiot z kompetencją, której nie ma żaden prowadzący |
 | `prowadzacy-bez-dostepnosci` | prowadzący z pustą dostępnością i przypisanymi zajęciami |
-| `limit-ponizej-obciazenia` | prowadzący z limitem 2 jednostek i przypisanymi zajęciami na więcej |
+| `limit-ponizej-obciazenia` | prowadzący z limitem 2 jednostek i przypisanymi zajęciami na więcej w gorszym tygodniu A/B |
 | `zajecia-1-jednostkowe` | zajęcia trwające 45 min |
 | `zajecia-ab` | laboratoria grup rodzeństwa w tygodniach A i B |
 | `prowadzacy-dzienne-i-zaoczne` | prowadzący przypisany do zajęć dziennych i zaocznych |
 | `zajecia-dluzsze-niz-dostepnosc` | zajęcia 2-jednostkowe u prowadzącego z 60 min ciągłej dostępności |
 | `pula-niedostepna` | pula formy złożona z jednej osoby dostępnej tylko w sobotę, przy zajęciach dziennych |
-| `pula-za-maly-limit` | pula formy z łącznym limitem 2 jednostek, mniejszym niż zapotrzebowanie |
+| `pula-za-maly-limit` | pula formy z łącznym limitem 2 jednostek, mniejszym niż zapotrzebowanie w gorszym tygodniu A/B |
 | `nakladajace-sie-wyjatki` | dzień rektorski w przerwie świątecznej, blokada sali obejmująca święto |
 | `odpracowanie-w-dniu-wolnym` | `dayOverride` w dniu ustawowo wolnym |
 
