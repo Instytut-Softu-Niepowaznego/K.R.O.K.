@@ -24,6 +24,7 @@ from krok.model import Event, parse_event
 
 @dataclass
 class StreamItem:
+  """Jedna linia strumienia: tekst, sparsowany JSON, zdarzenie albo opis błędu."""
   line: int
   text: str
   data: dict | None  # None = linia nie jest poprawnym obiektem JSON
@@ -32,15 +33,18 @@ class StreamItem:
 
   @property
   def timestamp(self) -> dt.datetime | None:
+    """Czas zdarzenia do odtwarzania; None, gdy jest nieczytelny albo ma strefę czasową."""
     if self.event:
       return self.event.timestamp
     try:
-      return dt.datetime.fromisoformat(self.data["timestamp"])
+      ts = dt.datetime.fromisoformat(self.data["timestamp"])
     except (TypeError, KeyError, ValueError):
       return None
+    return ts if ts.tzinfo is None else None
 
 
 def parse_line(line_no: int, text: str) -> StreamItem:
+  """Parsuje jedną linię JSONL. Nigdy nie rzuca wyjątku: błąd trafia do `StreamItem.error`."""
   try:
     data = json.loads(text)
   except json.JSONDecodeError as e:
@@ -56,6 +60,7 @@ def parse_line(line_no: int, text: str) -> StreamItem:
 
 
 def _lines(source: str | Path | Iterable[str]) -> Iterator[tuple[int, str]]:
+  """Niepuste linie z pliku albo z dowolnego iterowalnego źródła tekstu, numerowane od 1."""
   if isinstance(source, (str, Path)):
     with open(source, encoding="utf-8") as f:
       yield from ((i, line.rstrip("\n")) for i, line in enumerate(f, start=1) if line.strip())
@@ -70,7 +75,11 @@ def replay(source: str | Path | Iterable[str], speed: float | None = None, *, st
   speed: sekundy symulacji na sekundę rzeczywistą (None = bez czekania). Czekamy tylko, gdy czas idzie do przodu,
   więc zdarzenie z cofniętym `timestamp` przychodzi od razu po poprzednim.
   start / until: pomija zdarzenia z czasem przed `start` albo po `until`. Linie bez czytelnego czasu zawsze przechodzą.
+  Czasy w strumieniu są lokalne, bez strefy, więc `start` i `until` też muszą być bez strefy.
   """
+  for name, bound in (("start", start), ("until", until)):
+    if bound is not None and bound.tzinfo is not None:
+      raise ValueError(f"{name} musi być czasem bez strefy, tak jak timestamp w strumieniu")
   last: dt.datetime | None = None
   for line_no, text in _lines(source):
     item = parse_line(line_no, text)

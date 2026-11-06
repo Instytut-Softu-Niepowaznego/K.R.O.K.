@@ -22,6 +22,7 @@ OPTIONAL = {"reason", "fromTime", "toTime", "label", "scope"}
 
 
 def to_line(event: dict) -> str:
+  """Zdarzenie jako jedna linia JSONL."""
   return json.dumps(event, ensure_ascii=False)
 
 
@@ -39,20 +40,24 @@ def _id_paths(obj, path=()):
 
 
 def _get(obj, path):
+  """Wartość pod ścieżką kluczy i indeksów."""
   for p in path:
     obj = obj[p]
   return obj
 
 
 def _set(obj, path, value):
+  """Ustawia wartość pod ścieżką kluczy i indeksów."""
   _get(obj, path[:-1])[path[-1]] = value
 
 
 def _dotted(path) -> str:
+  """Ścieżka w payload jako tekst, np. `payload.group.parentId`."""
   return ".".join(str(p) for p in ("payload", *path))
 
 
 def _bad_reference(e, rng):
+  """badReference: dopisuje `-X` do losowego odwołania `...Id`."""
   paths = list(_id_paths(e["payload"]))
   if not paths:
     return None
@@ -63,12 +68,14 @@ def _bad_reference(e, rng):
 
 
 def _missing_field(e, rng):
+  """missingField: usuwa losowe wymagane pole payload."""
   keys = [k for k, v in e["payload"].items() if k not in OPTIONAL and v is not None]
   k = rng.choice(keys)
   return _dotted([k]), e["payload"].pop(k), None
 
 
 def _invalid_value(e, rng):
+  """invalidValue: wartość sprzeczna ze schematem, zależnie od typu zdarzenia."""
   p = e["payload"]
   if "from" in p:
     before = p["to"]
@@ -96,6 +103,7 @@ def _invalid_value(e, rng):
 
 
 def _unknown_type(e, rng):
+  """unknownType: usuwa jedną literę z `type`."""
   before = e["type"]
   i = rng.randrange(1, len(before) - 1)
   e["type"] = before[:i] + before[i + 1:]
@@ -108,11 +116,22 @@ ERROR_KINDS = [*MUTATORS, "duplicate", "outOfOrder", "malformedJson"]
 
 
 def inject_errors(events: list[dict], spec: EventSpec, rng: random.Random) -> tuple[list[str], list[dict]]:
+  """Psuje część zdarzeń (`error_rate`); zwraca linie JSONL i manifest błędów z numerami linii."""
   kinds, weights = zip(*spec.error_weights.items())
   out: list[tuple[dict | str, dict | None]] = []  # (zdarzenie albo surowa linia, wpis manifestu)
+  latest_clean: dt.datetime | None = None  # najpóźniejszy czas poprawnego zdarzenia, liczony na bieżąco
+
+  def append(item: dict | str, entry: dict | None) -> None:
+    """Dodaje linię i aktualizuje najpóźniejszy czas poprawnego zdarzenia."""
+    nonlocal latest_clean
+    out.append((item, entry))
+    if entry is None:
+      ts = dt.datetime.fromisoformat(item["timestamp"])
+      latest_clean = ts if latest_clean is None else max(latest_clean, ts)
+
   for e in events:
     if rng.random() >= spec.error_rate:
-      out.append((e, None))
+      append(e, None)
       continue
     kind = rng.choices(kinds, weights)[0]
     bad = copy.deepcopy(e)
@@ -120,26 +139,25 @@ def inject_errors(events: list[dict], spec: EventSpec, rng: random.Random) -> tu
     if kind in MUTATORS:
       change = MUTATORS[kind](bad, rng)
       if change is None:
-        out.append((e, None))
+        append(e, None)
         continue
       entry |= dict(zip(("field", "before", "after"), change))
-      out.append((bad, entry))
+      append(bad, entry)
     elif kind == "duplicate":
-      out.append((e, None))
-      out.append((bad, entry | {"field": "id", "before": e["id"], "after": e["id"]}))
+      append(e, None)
+      append(bad, entry | {"field": "id", "before": e["id"], "after": e["id"]})
     elif kind == "outOfOrder":
       # Cofamy względem najpóźniejszego poprawnego zdarzenia: zepsute linie percepcja i tak odrzuci,
       # więc cofnięcie tylko względem nich byłoby niewykrywalne.
-      clean = [dt.datetime.fromisoformat(x["timestamp"]) for x, prev_entry in out if prev_entry is None]
-      if not clean:
-        out.append((e, None))
+      if latest_clean is None:
+        append(e, None)
         continue
-      earlier = max(clean) - dt.timedelta(days=rng.randint(1, 5))
+      earlier = latest_clean - dt.timedelta(days=rng.randint(1, 5))
       bad["timestamp"] = earlier.isoformat()
-      out.append((bad, entry | {"field": "timestamp", "before": e["timestamp"], "after": bad["timestamp"]}))
+      append(bad, entry | {"field": "timestamp", "before": e["timestamp"], "after": bad["timestamp"]})
     elif kind == "malformedJson":
       line = to_line(e)
-      out.append((line[: rng.randint(10, len(line) - 2)], entry | {"field": None, "before": None, "after": None}))
+      append(line[: rng.randint(10, len(line) - 2)], entry | {"field": None, "before": None, "after": None})
     else:
       raise ValueError(f"events.error_weights: nieznany rodzaj błędu {kind}")
 

@@ -19,7 +19,7 @@ Plik `events.jsonl`, jedna linia = jedno zdarzenie:
 ```
 
 - `id`: unikalny identyfikator zdarzenia. Pozwala wykryć duplikaty i odwołać się do zdarzenia w raporcie (np. `changedUnaffected` w [kryteriach](../etap1/kryteria.md)).
-- `timestamp`: chwila, w której system dowiaduje się o zmianie (czas lokalny, bez strefy). Linie są posortowane po tym polu.
+- `timestamp`: chwila, w której system dowiaduje się o zmianie (czas lokalny, bez strefy). Czas ze strefą (np. `+02:00`) to błąd schematu. Linie są posortowane po tym polu.
 - `payload`: daty, od kiedy zmiana obowiązuje (`from`/`to` albo `effectiveFrom`). Informacja zwykle przychodzi kilka dni wcześniej (`events.notice_days`).
 
 Schematy to modele pydantic w `src/krok/model/events.py`: `parse_event(linia_albo_słownik)` waliduje jedno zdarzenie.
@@ -75,5 +75,5 @@ for item in replay("data/generated/kierunek/events.jsonl", speed=86400):
 ```
 
 - `speed`: sekundy symulacji na sekundę rzeczywistą. Bez `speed` iterator nie czeka. Przy cofniętym `timestamp` też nie czeka.
-- `start` / `until` pomijają zdarzenia spoza zakresu czasu. Linie bez czytelnego czasu zawsze przechodzą.
+- `start` / `until` pomijają zdarzenia spoza zakresu czasu. Też muszą być bez strefy. Linie bez czytelnego czasu (albo z czasem ze strefą) zawsze przechodzą i nie wpływają na czekanie.
 - Iterator nie odrzuca błędnych linii, tylko je oznacza (`StreamItem.line`, `text`, `data`, `event`, `error`). Odwołań do danych, duplikatów i kolejności nie sprawdza, bo to zadanie percepcji (#9).

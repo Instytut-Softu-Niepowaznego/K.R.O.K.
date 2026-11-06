@@ -266,3 +266,28 @@ def test_errors_detectable_across_seeds(name):
   ds = generate(preset).dataset
   for seed in range(30):
     assert_stream_detectable(ds, generate_events(ds, preset, seed))
+
+
+def test_offset_timestamp_is_schema_error():
+  with pytest.raises(ValidationError):
+    parse_event(json.loads(_line(1, "2026-10-01T10:00:00+02:00")))
+
+
+def test_replay_survives_mixed_timezones():
+  """Linia ze strefą czasową jest błędem schematu i nie przerywa odtwarzania ani filtrowania."""
+  broken = json.loads(_line(9, "2026-10-01T09:00:00+02:00"))
+  broken["type"] = "zly-typ"
+  lines = [_line(1, "2026-10-01T10:00:00"), _line(2, "2026-10-02T10:00:00+02:00"), json.dumps(broken),
+           _line(3, "2026-10-03T10:00:00")]
+  sleeps: list[float] = []
+  items = list(replay(lines, speed=86400, start=dt.datetime(2026, 9, 1), until=dt.datetime(2026, 12, 1), sleep=sleeps.append))
+  assert [it.line for it in items] == [1, 2, 3, 4]
+  assert items[1].event is None and items[1].timestamp is None and items[2].timestamp is None
+  assert sleeps == [2.0]  # linie ze strefą nie wpływają na czekanie
+
+
+@pytest.mark.parametrize("bound", ["start", "until"])
+def test_replay_rejects_aware_bounds(bound):
+  aware = dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc)
+  with pytest.raises(ValueError, match=bound):
+    list(replay([_line(1, "2026-10-01T10:00:00")], **{bound: aware}))
