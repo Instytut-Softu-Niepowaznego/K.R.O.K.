@@ -96,7 +96,10 @@ def _expect(name: str, value, kind: type, what: str):
 
 
 def dataset_from_files(files: dict[str, object]) -> Dataset:
-  """Składa Dataset z plików. Zły kształt pliku → DatasetError, złe rekordy → ValidationError."""
+  """Składa Dataset z plików. Brak albo zły kształt pliku → DatasetError, złe rekordy → ValidationError."""
+  missing = [name for name in FILES if name not in files]
+  if missing:
+    raise DatasetError(f"brak plików: {', '.join(missing)}")
   calendar = _expect("calendar.json", files["calendar.json"], dict, 'obiektu {"calendar": {...}}')
   faculties = _expect("faculties.json", files["faculties.json"], dict, "obiektu {faculties, fields, programs}")
   data = {
