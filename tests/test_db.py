@@ -200,6 +200,26 @@ def test_events_change_state(tmp_path, engine):
   assert "NOWY-W" in {c.id for c in after.classes}
 
 
+def test_failure_rolls_back_events_and_log(tmp_path, engine):
+  """Awaria w trakcie strumienia cofa zastosowane już zdarzenia i ich wpisy w dzienniku."""
+  import_dir(generated(tmp_path, "mini"), engine)
+  before = read_dataset(engine)
+  group = before.groups[0]
+
+  def lines():
+    """Poprawne zdarzenie, a po nim awaria strumienia."""
+    yield json.dumps({"id": "E-1", "timestamp": "2026-10-01T10:00:00", "type": "groupSizeChanged",
+                      "payload": {"groupId": group.id, "size": group.size + 1, "effectiveFrom": "2026-10-05"}})
+    raise RuntimeError("przerwany strumień")
+
+  with pytest.raises(RuntimeError, match="przerwany strumień"):
+    apply_events(engine, lines())
+
+  assert read_dataset(engine) == before
+  with engine.connect() as conn:
+    assert conn.execute(select(event_log)).all() == []
+
+
 def test_get_data_and_validate_read_from_database(tmp_path, engine, monkeypatch):
   """`get_data` i `validate` działają na danych z bazy."""
   monkeypatch.setenv("KROK_DB", str(tmp_path / "krok.db"))
