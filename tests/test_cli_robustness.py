@@ -32,8 +32,12 @@ def test_every_data_cli_rejects_corrupted_file_with_exit_2(base, tmp_path, capsy
   else:
     (d / "calendar.json").write_bytes(CORRUPT[how])
 
-  assert env_main(["--data", str(d), "-q"]) == 2
-  assert events_main(["generate", "--data", str(d), "-q"]) == 2
-  assert db_main(["--db", str(tmp_path / "krok.db"), "import", str(d)]) == 2
-  assert quality_main(["--data", str(d), "-q"]) == 2
-  assert "calendar.json" in capsys.readouterr().err
+  runs = {
+    "krok-env": lambda: env_main(["--data", str(d), "-q"]),
+    "krok-events": lambda: events_main(["generate", "--data", str(d), "-q"]),
+    "krok-db": lambda: db_main(["--db", str(tmp_path / "krok.db"), "import", str(d)]),
+    "krok-quality": lambda: quality_main(["--data", str(d), "-q"]),
+  }
+  for name, run in runs.items():
+    assert run() == 2, name
+    assert "calendar.json" in capsys.readouterr().err, name
