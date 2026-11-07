@@ -43,7 +43,7 @@ def assert_stream_detectable(ds, stream):
   Wpisy manifestu: każdy da się wykryć."""
   cal = ds.calendar
   base = known_ids(ds)
-  known = base | {i for line in stream.lines for i in _created_ids(line)}
+  known = base | {i for line in stream.lines for i in _created_ids(line)}  # wszystkie id, także tworzone później
   by_line = {e["line"]: e for e in stream.manifest}
   seen, latest, created_so_far = set(), None, set()
   for i, text in enumerate(stream.lines, start=1):
@@ -58,7 +58,7 @@ def assert_stream_detectable(ds, stream):
         value = item.data["payload"]
         for p in path:
           value = value[p]
-        assert value in known, (i, path, value)
+        assert value in base | created_so_far, (i, path, value)  # id musi istnieć już w chwili zdarzenia
       for key in ("from", "to", "effectiveFrom"):
         if key in item.data["payload"]:
           assert cal.semester_start <= dt.date.fromisoformat(item.data["payload"][key]) <= cal.semester_end, (i, key)
