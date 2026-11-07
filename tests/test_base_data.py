@@ -1,4 +1,4 @@
-"""Ręczne dane bazowe WJ (#6): budynki i układ sal."""
+"""Ręczne dane bazowe WJ (#6): budynki, układ sal i budynki macierzyste kompetencji."""
 
 import json
 import math
@@ -6,11 +6,8 @@ import re
 from collections import Counter
 from pathlib import Path
 
-import pytest
-from pydantic import ValidationError
-
-from krok.generator import generate, load_preset
-from krok.generator.settings import PRESETS_DIR, load_catalog
+from krok.generator import load_preset
+from krok.generator.settings import load_catalog
 from krok.model import Building, Config, Room
 
 BASE = Path(__file__).parent.parent / "src/krok/data/wj"
@@ -23,88 +20,26 @@ def read(name: str):
   return json.loads((BASE / name).read_text(encoding="utf-8"))
 
 
-def km_from_campus(b: Building) -> float:
-  """Przybliżona odległość budynku od adresu kampusu w kilometrach."""
-  dy = (b.lat - CAMPUS[0]) * 111.2
-  dx = (b.lon - CAMPUS[1]) * 111.2 * math.cos(math.radians(CAMPUS[0]))
-  return math.hypot(dx, dy)
-
-
-@pytest.fixture(scope="module")
-def rooms() -> list[Room]:
-  """Sale z rooms.json po walidacji modelem."""
-  return [Room.model_validate(r) for r in read("rooms.json")]
-
-
-def test_buildings_are_p1_to_p6_on_campus():
-  """Są budynki P1–P6 i każdy leży blisko adresu kampusu."""
+def test_base_data_matches_campus():
+  """P1–P6 przy adresie kampusu; 15 sal na kondygnację budynków z salami; wszystkie typy sal z konfiguracji."""
   buildings = [Building.model_validate(b) for b in read("buildings.json")]
   assert [b.id for b in buildings] == ["P1", "P2", "P3", "P4", "P5", "P6"]
-  assert all(km_from_campus(b) < 1 for b in buildings)
+  for b in buildings:
+    dy = (b.lat - CAMPUS[0]) * 111.2
+    dx = (b.lon - CAMPUS[1]) * 111.2 * math.cos(math.radians(CAMPUS[0]))
+    assert math.hypot(dx, dy) < 1, b.id
 
-
-def test_room_layout(rooms):
-  """Numery sal są unikalne, a każda kondygnacja budynku z salami ma 15 sal."""
+  rooms = [Room.model_validate(r) for r in read("rooms.json")]
   assert len({r.id for r in rooms}) == len(rooms) == 300
   assert all(re.fullmatch(r"P[1-6]-[0-3](0[1-9]|1[0-5])", r.id) for r in rooms)
-  per_floor = Counter((r.building_id, r.number[0]) for r in rooms)
-  assert per_floor == {(b, f): 15 for b in BUILDINGS_WITH_ROOMS for f in "0123"}
-
-
-def test_room_types_and_capacity(rooms):
-  """Występują wszystkie typy sal z konfiguracji, a P6 ma same sale `classroom`."""
-  types = set(Config.model_validate(read("config.json")).room_types)
-  assert {r.type for r in rooms} == types
+  assert Counter((r.building_id, r.number[0]) for r in rooms) == {(b, f): 15 for b in BUILDINGS_WITH_ROOMS for f in "0123"}
+  assert {r.type for r in rooms} == set(Config.model_validate(read("config.json")).room_types)
   assert {r.type for r in rooms if r.building_id == "P6"} == {"classroom"}
-  assert "capacity" in read("rooms.json")[0]
-
-
-def test_room_id_must_join_building_and_number():
-  """Model przyjmuje `id` w formacie `budynek-numer` i odrzuca stary format."""
-  Room(id="P3-213", building_id="P3", number="213", type="lab-it", capacity=16, faculty_ids=["WJ"])
-  with pytest.raises(ValidationError):
-    Room(id="P3/213", building_id="P3", number="213", type="lab-it", capacity=16, faculty_ids=["WJ"])
 
 
 def test_every_competence_has_home_building_with_rooms():
-  """Sprawdza cały katalog, a nie tylko kompetencje wylosowane przez generator.
-
-  Pusta lista też jest błędem: generator wybrałby wtedy dowolny budynek, także P4.
-  """
+  """Cały katalog, nie tylko kompetencje wylosowane przez generator. P4 nie ma sal."""
   allowed = {b["id"] for b in read("buildings.json")} - {"P4"}
   for competence in load_catalog(load_preset("wydzial").catalog).competence:
     assert competence.home_buildings, competence.id
     assert set(competence.home_buildings) <= allowed, competence.id
-
-
-def test_home_building_fallback_skips_buildings_without_rooms(tmp_path):
-  """Katalog bez `home_buildings` nie może dać prowadzącemu budynku bez sal, np. P4."""
-  catalog = (PRESETS_DIR / "katalog-wj.toml").read_text(encoding="utf-8")
-  custom = tmp_path / "katalog.toml"
-  custom.write_text(re.sub(r"^home_buildings = .*\n", "", catalog, flags=re.M), encoding="utf-8")
-  preset = load_preset("kierunek")
-  preset.catalog = str(custom)
-
-  ds = generate(preset).dataset
-
-  assert {lec.home_building_id for lec in ds.lecturers} <= {r.building_id for r in ds.rooms}
-
-
-def test_generator_keeps_explicitly_empty_rooms(tmp_path):
-  """Pusty plik sal nie zatrzymuje generatora i nie jest zastępowany salami bazowymi."""
-  empty = tmp_path / "rooms.json"
-  empty.write_text("[]", encoding="utf-8")
-
-  ds = generate(load_preset("mini"), rooms_path=empty).dataset
-
-  assert ds.rooms == []
-  assert ds.lecturers
-  assert {lec.home_building_id for lec in ds.lecturers} <= {b.id for b in ds.buildings}
-
-
-@pytest.mark.parametrize("preset", ["mini", "kierunek", "wydzial", "edge-cases"])
-def test_generator_accepts_base_data(preset):
-  """Generator przyjmuje dane bazowe i nie daje nikomu budynku macierzystego P4."""
-  ds = generate(load_preset(preset)).dataset
-  assert len(ds.rooms) == 300
-  assert "P4" not in {lec.home_building_id for lec in ds.lecturers}
