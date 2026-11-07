@@ -212,3 +212,23 @@ def test_extends_cycle_fixture_is_valid_toml_for_windows_paths():
   import tomllib
   win = r"C:\Users\michal\AppData\Local\Temp\b.toml"
   assert tomllib.loads(f"extends = {json.dumps(win, ensure_ascii=False)}\n")["extends"] == win
+
+
+def test_generator_room_type_must_be_text(tmp_path):
+  """Sala bez pojemności z typem innym niż tekst (np. lista) dawała TypeError przed walidacją modelu."""
+  rooms = tmp_path / "rooms.json"
+  rooms.write_text(json.dumps([{"id": "P1-001", "buildingId": "P1", "number": "001", "type": [], "facultyIds": ["WJ"]}]))
+  assert gen_main(["--preset", "mini", "--rooms", str(rooms), "--out", str(tmp_path / "o"), "-q"]) == 2
+
+
+def test_list_reports_invalid_preset_and_keeps_listing(monkeypatch, tmp_path, capsys):
+  """Regresja z ostrzejszej walidacji presetów: --list wypisuje poprawne presety, błędny zgłasza i zwraca 2."""
+  from krok.generator import settings
+  presets = tmp_path / "presets"
+  shutil.copytree(settings.PRESETS_DIR, presets)
+  (presets / "zly.toml").write_text('name = "zly"\nfields = []\n')
+  monkeypatch.setattr(settings, "PRESETS_DIR", presets)
+  assert gen_main(["--list"]) == 2
+  captured = capsys.readouterr()
+  assert "mini" in captured.out and "wydzial" in captured.out
+  assert "preset zly" in captured.err
