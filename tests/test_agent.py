@@ -13,6 +13,8 @@ import krok.harness.tools.save_plan as save_plan_module
 from krok.harness import agent
 from krok.harness.agent import MAX_STEPS, run_agent
 
+pytestmark = pytest.mark.usefixtures("test_data")
+
 
 def text(content):
   return ChatCompletionMessage(role="assistant", content=content)

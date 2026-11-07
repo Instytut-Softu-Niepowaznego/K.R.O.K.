@@ -5,6 +5,8 @@ import pytest
 import krok.harness.tools.save_plan as module
 from krok.harness.plan import PlanInput
 
+pytestmark = pytest.mark.usefixtures("test_data")
+
 
 def read_rows(path):
   with path.open(encoding="utf-8", newline="") as f:

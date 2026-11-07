@@ -46,9 +46,9 @@ def valid_plan() -> list[Lesson]:
   ]
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def test_data(monkeypatch):
-  """Testy nie zależą od danych w src/krok/data, które będą się zmieniać."""
+  """Testy harness nie zależą od danych z bazy ani z src/krok/data. Włączane przez `pytestmark` w ich plikach."""
   monkeypatch.setattr(plan, "load", DATA.__getitem__)
 
 

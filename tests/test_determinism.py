@@ -16,8 +16,8 @@ def _run(module: str, args: list[str], hash_seed: str) -> None:
   subprocess.run([sys.executable, "-c", code, *args], env=env, check=True)
 
 
-def _generate(out: Path, seed: int, hash_seed: str) -> dict[str, bytes]:
-  gen = ["--preset", "edge-cases", "--seed", str(seed), "-q"]
+def _generate(out: Path, seed: int | None, hash_seed: str) -> dict[str, bytes]:
+  gen = ["--preset", "kierunek", *(["--seed", str(seed)] if seed is not None else []), "-q"]
   # Szum psuje walidację, więc zdarzenia powstają z czystych danych.
   _run("krok.generator.cli", [*gen, "--no-noise", "--out", str(out / "clean")], hash_seed)
   _run("krok.events.cli", ["generate", "--data", str(out / "clean"), "-q"], hash_seed)
@@ -26,9 +26,10 @@ def _generate(out: Path, seed: int, hash_seed: str) -> dict[str, bytes]:
 
 
 def test_same_seed_same_files_other_seed_differs(tmp_path):
-  first = _generate(tmp_path / "a", 42, "1")
+  # kierunek z domyślnym seedem przy PYTHONHASHSEED 1 i 3 dawał różne pule prowadzących (regresja 292cbe0).
+  first = _generate(tmp_path / "a", None, "1")
   assert {"clean/events.jsonl", "noisy/_noise.json"} <= first.keys()
-  assert _generate(tmp_path / "b", 42, "2") == first
+  assert _generate(tmp_path / "b", None, "3") == first
   other = _generate(tmp_path / "c", 43, "1")
   for name in ("clean/classes.json", "clean/events.jsonl", "noisy/_noise.json"):
     assert other[name] != first[name], name

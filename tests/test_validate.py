@@ -3,6 +3,8 @@ import pytest
 from conftest import lesson
 from krok.harness.plan import validate
 
+pytestmark = pytest.mark.usefixtures("test_data")
+
 
 def broken(plan, index, **changes):
   """Kopia poprawnego planu z jedną zmienioną lekcją."""

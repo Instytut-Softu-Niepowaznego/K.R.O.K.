@@ -70,8 +70,8 @@ Limity i czasy liczymy osobno dla tygodnia A (`every` + `A`) i B (`every` + `B`)
 ## Testy i wydajność
 
 - Na presecie `edge-cases` każdy przypadek brzegowy, który jest przeszkodą, trafia do raportu z właściwym `code` i id, na każdym z 40 ziaren. Przypadki, które przeszkodą nie są (zajęcia 1-jednostkowe, A/B, prowadzący na dziennych i zaocznych), nie dają błędów.
-- Na presetach `mini`, `kierunek` i `wydzial` (40 ziaren) nie ma błędów.
-- Każde sprawdzenie ma też test na celowo zepsutych danych.
+- Na presetach `mini` i `kierunek` (po 15 ziaren) i `wydzial` (3 ziarna) nie ma błędów.
+- Sprawdzenia, których nie pokrywają przypadki brzegowe, mają po jednym przypadku na celowo zepsutych danych. Wyłączenie reguły w konfiguracji (`pojemnosc-sali`, `komplet-godzin`, `blokady-zasobow`) zdejmuje przeszkodę.
 - Wydajność: `wydzial` (≈ 700 zajęć) liczy się w ≈ 0,01–0,04 s.
 
 Ograniczenia percepcji i ich wpływ na raport opisuje [percepcja.md](percepcja.md) (#11). Raport jakości przypisuje każdą przeszkodę z tego raportu do jej przyczyny w danych.

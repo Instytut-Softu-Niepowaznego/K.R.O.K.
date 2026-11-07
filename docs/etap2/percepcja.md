@@ -115,7 +115,6 @@ Przykład dla `kierunek`, ziarno 42, dane z szumem i ze zdarzeniami:
 Na tych samych danych bez szumu raport nie ma problemów z importu, a wszystkie 4 przeszkody wynikają ze zdarzeń.
 
 Testy (`tests/test_quality.py`) sprawdzają:
-- wykrywalność 100% i brak fałszywych alarmów na kilku presetach i ziarnach;
-- znaną przyczynę każdej przeszkody;
-- kategorie, miary wrażliwości;
-- CLI.
+- wykrywalność 100%, brak fałszywych alarmów i znaną przyczynę każdej przeszkody na kilku presetach i ziarnach;
+- czyste dane bez zdarzeń: brak problemów;
+- miary wrażliwości.
