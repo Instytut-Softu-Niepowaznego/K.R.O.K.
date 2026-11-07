@@ -24,11 +24,14 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
                 groups: list[Group], programs: list[Program], rng: random.Random) -> None:
   spec = preset.lecturers
   modes = class_modes(classes, groups, programs)
-  form_modes: dict[tuple[str, str], set[str]] = defaultdict(set)
+  modes_of: dict[tuple[str, str], set[str]] = defaultdict(set)
   by_form: dict[tuple[str, str], list[Class]] = defaultdict(list)
   for c in classes:
-    form_modes[(c.subject_id, c.form)].add(modes[c.id])
+    modes_of[(c.subject_id, c.form)].add(modes[c.id])
     by_form[(c.subject_id, c.form)].append(c)
+  # Posortowane: kolejność trybów zmienia rezerwacje w commit(), a kolejność iteracji po zbiorze napisów
+  # zależy od PYTHONHASHSEED, więc ten sam seed dawał różne pule w różnych procesach.
+  form_modes = {key: tuple(sorted(ms)) for key, ms in modes_of.items()}
   demand = {key: peak_units(cs) for key, cs in by_form.items()}  # jednostki w gorszym tygodniu A/B
 
   @cache
@@ -93,7 +96,7 @@ def build_pools(preset: Preset, config: Config, subjects: list[Subject], classes
       if key not in demand:
         continue
       pool: list[Lecturer] = []
-      for mode in sorted(form_modes[key]):
+      for mode in form_modes[key]:
         if any(can_teach(lec, key, mode) for lec in pool):
           continue  # ktoś wybrany dla innego trybu poprowadzi też ten
         fitting = [lec for lec in candidates if can_teach(lec, key, mode) and lec not in pool]

@@ -1,5 +1,8 @@
 import datetime as dt
 import json
+import os
+import subprocess
+import sys
 from collections import defaultdict
 
 import pytest
@@ -44,6 +47,20 @@ def test_same_seed_same_output_other_seed_differs():
   preset = load_preset("kierunek")
   assert generate(preset, 7).files == generate(preset, 7).files
   assert generate(preset, 7).files != generate(preset, 8).files
+
+
+def test_same_seed_same_output_in_every_process():
+  """Wynik nie może zależeć od PYTHONHASHSEED: kolejność iteracji po zbiorze trybów w pulach prowadzących
+  zmieniała rezerwacje, więc `wydzial` dawał inne pule w innym procesie (przy seedzie 3 inne niż przy 1)."""
+  script = ("import hashlib, json\n"
+            "from krok.generator import generate, list_presets, load_preset\n"
+            "for name in list_presets():\n"
+            "  files = json.dumps(generate(load_preset(name)).files, sort_keys=True, default=str)\n"
+            "  print(name, hashlib.sha256(files.encode()).hexdigest())\n")
+  outputs = {seed: subprocess.run([sys.executable, "-c", script], env={**os.environ, "PYTHONHASHSEED": seed},
+                                  capture_output=True, text=True, check=True).stdout for seed in ("1", "3")}
+  assert "wydzial" in outputs["1"]
+  assert outputs["1"] == outputs["3"]
 
 
 @pytest.mark.parametrize("name", CLEAN)
