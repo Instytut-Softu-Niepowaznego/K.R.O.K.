@@ -51,7 +51,8 @@ def load_base(preset: Preset, rng: random.Random, buildings_path: Path | None = 
     raise DatasetError(f"{b_path}: brak budynków, a prowadzący potrzebują budynku macierzystego")
   rooms = []
   for raw in _records(rooms_path or base / "rooms.json"):
-    if raw.get("capacity") is None and raw.get("type") in preset.room_capacity:
+    # Typ sprawdzamy jako tekst, zanim użyjemy go jako klucza: inną wartość (np. listę) odrzuci walidacja modelu.
+    if raw.get("capacity") is None and isinstance(raw.get("type"), str) and raw["type"] in preset.room_capacity:
       raw = {**raw, "capacity": rng.randint(*preset.room_capacity[raw["type"]])}
     rooms.append(Room.model_validate(raw))  # nieznany typ bez pojemności: walidacja zgłosi brak capacity
   return config, buildings, rooms

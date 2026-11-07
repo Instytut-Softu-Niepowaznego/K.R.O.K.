@@ -27,9 +27,14 @@ def main(argv: list[str] | None = None) -> int:
   args = p.parse_args(argv)
 
   if args.list:
-    for name in list_presets():
-      print(f"{name:12} {load_preset(name).description}")
-    return 0
+    status = 0
+    for name in list_presets():  # błędny preset nie urywa listy: komunikat i kod 2 na końcu
+      try:
+        print(f"{name:12} {load_preset(name).description}")
+      except PresetError as e:
+        print(e, file=sys.stderr)
+        status = 2
+    return status
 
   try:
     preset = load_preset(args.preset)
