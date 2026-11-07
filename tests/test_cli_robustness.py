@@ -102,8 +102,10 @@ def test_bad_preset_is_exit_2_everywhere(tmp_path, content):
 
 
 def test_extends_cycle_is_reported(tmp_path, capsys):
-  (tmp_path / "a.toml").write_text(f'extends = "{tmp_path / "b.toml"}"\nname = "a"\n')
-  (tmp_path / "b.toml").write_text(f'extends = "{tmp_path / "a.toml"}"\nname = "b"\n')
+  # json.dumps daje poprawny napis TOML także dla ścieżek z Windows (C:\Users → "C:\\Users"), w których \U i \b
+  # byłyby w TOML sekwencjami ucieczki.
+  (tmp_path / "a.toml").write_text(f'extends = {json.dumps(str(tmp_path / "b.toml"), ensure_ascii=False)}\nname = "a"\n')
+  (tmp_path / "b.toml").write_text(f'extends = {json.dumps(str(tmp_path / "a.toml"), ensure_ascii=False)}\nname = "b"\n')
   assert gen_main(["--preset", str(tmp_path / "a.toml"), "-q"]) == 2
   assert "Cykl w extends" in capsys.readouterr().err
 
@@ -196,3 +198,17 @@ def test_quality_report_survives_every_corrupted_file(base, tmp_path):
       d = corrupted(base, tmp_path / f"{name}-{how}", name, how)
       assert quality_main(["--data", str(d), "-q"]) in (0, 2)
   assert json.loads((base / "_meta.json").read_text())["preset"] == "mini"
+
+
+def test_dataset_from_partial_files_names_missing_file(base):
+  data = read_files(base)
+  del data["calendar.json"], data["rooms.json"]
+  with pytest.raises(DatasetError, match="brak plików: calendar.json, rooms.json"):
+    dataset_from_files(data)
+
+
+def test_extends_cycle_fixture_is_valid_toml_for_windows_paths():
+  """Regresja do recenzji: ścieżka z Windows w napisie TOML musi przejść przez parser bez zmian."""
+  import tomllib
+  win = r"C:\Users\michal\AppData\Local\Temp\b.toml"
+  assert tomllib.loads(f"extends = {json.dumps(win, ensure_ascii=False)}\n")["extends"] == win
