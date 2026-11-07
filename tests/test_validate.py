@@ -12,6 +12,7 @@ def broken(plan, index, **changes):
 
 
 def test_valid_plan_has_no_errors_or_warnings(valid_plan):
+  """Poprawny plan nie ma błędów ani ostrzeżeń."""
   assert validate(valid_plan) == ([], [])
 
 
@@ -27,6 +28,7 @@ def test_valid_plan_has_no_errors_or_warnings(valid_plan):
   pytest.param(None, None, "G2 / Sieci: 0h w planie, wymagane 1h", id="za-mało-godzin"),
 ])
 def test_hard_rule_violation_is_an_error(valid_plan, index, changes, expected):
+  """Złamanie każdej reguły twardej to błąd z czytelnym opisem."""
   plan = valid_plan[:-1] if index is None else broken(valid_plan, index, **changes)
   errors, _ = validate(plan)
   assert any(expected in e for e in errors), errors
@@ -34,6 +36,7 @@ def test_hard_rule_violation_is_an_error(valid_plan, index, changes, expected):
 
 def test_soft_rules_are_only_warnings():
   # Anna w Pon: A (8), A (9), B (10) podane nie po kolei. Po godzinach to 1 zmiana budynku, nie 2.
+  """Budynek spoza ulubionego i zmiana budynku w ciągu dnia to tylko ostrzeżenia."""
   plan = [
     lesson(hour=8),
     lesson(hour=10, group="G2", course="Sieci", building="B", room="3"),

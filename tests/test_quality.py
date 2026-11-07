@@ -31,10 +31,12 @@ def pipeline(tmp_path: Path, name: str = "kierunek", seed: int = 1, *, noise: bo
 
 
 def totals(section: dict) -> dict:
+  """Liczba problemów w każdej kategorii sekcji raportu."""
   return {cat: c["total"] for cat, c in section["categories"].items()}
 
 
 def test_clean_data_without_events_has_no_problems(tmp_path):
+  """Czyste dane bez zdarzeń: brak problemów, brak przeszkód i nic do mierzenia."""
   r = pipeline(tmp_path, noise=False, events=False)
   assert r["imported"]["issues"] == 0 and set(totals(r["imported"]).values()) == {0}
   assert r["events"]["lines"] == 0
@@ -63,6 +65,7 @@ def test_every_injected_problem_is_detected_and_explained(tmp_path, name, seed):
 
 
 def test_sensitivity_measures(tmp_path):
+  """Miary wrażliwości liczą błąd czasu przejścia, zdarzenia działające później i ryzyko wzrostu grup."""
   r = pipeline(tmp_path, noise=False, events=True, params=QualityParams(coordinate_error_m=30, group_growth=0.1))
   s = r["sensitivity"]
   # 2 × 0,03 km × routeFactor 1,3 / 5 km/h × 60

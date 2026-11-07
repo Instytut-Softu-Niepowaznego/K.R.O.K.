@@ -9,11 +9,13 @@ pytestmark = pytest.mark.usefixtures("test_data")
 
 
 def read_rows(path):
+  """Wiersze pliku CSV jako słowniki."""
   with path.open(encoding="utf-8", newline="") as f:
     return list(csv.DictReader(f))
 
 
 def test_saves_sorted_csv_only_for_valid_plan(tmp_path, monkeypatch, valid_plan):
+  """Plan z błędami nie jest zapisywany, a poprawny trafia do obu plików CSV posortowany."""
   plans_dir = tmp_path / "plans"
   monkeypatch.setattr(module, "PLANS", plans_dir)
 

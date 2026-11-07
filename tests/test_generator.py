@@ -9,6 +9,7 @@ from krok.model import dataset_from_files, reference_errors
 
 @pytest.mark.parametrize("name", ["mini", "kierunek", "wydzial", "edge-cases"])
 def test_preset_is_consistent_and_roundtrips(name, tmp_path):
+  """Preset daje dane bez błędów odwołań, które po zapisie i odczycie są takie same."""
   r = generate(load_preset(name))
   assert reference_errors(r.dataset) == []
   write(r, tmp_path)
@@ -16,6 +17,7 @@ def test_preset_is_consistent_and_roundtrips(name, tmp_path):
 
 
 def test_edge_cases_are_all_injected_and_point_to_real_ids():
+  """Preset edge-cases zawiera każdy przypadek brzegowy, a jego id istnieją w danych."""
   r = generate(load_preset("edge-cases"))
   ds = r.dataset
   cases = {c["case"]: c for c in r.meta["edgeCases"]}
@@ -29,6 +31,7 @@ def test_edge_cases_are_all_injected_and_point_to_real_ids():
 
 
 def test_noise_changes_only_noisy_files_and_is_logged():
+  """Szum nie zmienia czystych danych, każda zmiana jest zapisana, a pliki z szumem nie przechodzą walidacji."""
   preset = load_preset("kierunek")
   clean = generate(preset)
   preset.noise.enabled = True

@@ -10,10 +10,12 @@ from krok.model import EVENT_TYPES
 
 
 def known_ids(ds) -> set[str]:
+  """Id encji, do których mogą odwoływać się zdarzenia."""
   return {x.id for coll in (ds.rooms, ds.lecturers, ds.groups, ds.subjects, ds.classes, ds.programs) for x in coll}
 
 
 def _created_ids(line: str) -> set[str]:
+  """Id encji tworzonych przez zdarzenie z linii (puste dla zepsutej linii)."""
   try:
     p = json.loads(line)["payload"]
   except (json.JSONDecodeError, KeyError):
@@ -27,6 +29,7 @@ def _created_ids(line: str) -> set[str]:
 
 
 def test_stream_covers_all_event_types_and_error_kinds():
+  """Strumień zawiera każdy typ zdarzenia i każdy rodzaj celowego błędu."""
   preset = load_preset("kierunek")
   preset.events.per_week, preset.events.error_rate = 12, 0.4
   stream = generate_events(generate(preset).dataset, preset, 42)
@@ -75,6 +78,7 @@ def assert_stream_detectable(ds, stream):
 
 @pytest.mark.parametrize("name", ["mini", "edge-cases", "kierunek"])
 def test_valid_events_are_consistent_and_errors_detectable(name):
+  """Na 30 ziarnach każdy strumień spełnia `assert_stream_detectable`."""
   preset = load_preset(name)
   preset.events.error_rate = 0.5
   ds = generate(preset).dataset
@@ -83,11 +87,13 @@ def test_valid_events_are_consistent_and_errors_detectable(name):
 
 
 def _line(i: int, ts: str) -> str:
+  """Poprawna linia zdarzenia lecturerAbsent z podanym czasem."""
   return json.dumps({"id": f"E-{i}", "timestamp": ts, "type": "lecturerAbsent",
                      "payload": {"lecturerId": "P-0001", "from": "2026-10-10", "to": "2026-10-11"}})
 
 
 def test_replay_paces_filters_and_survives_bad_lines():
+  """Replay czeka według czasu zdarzeń, filtruje zakres i oznacza zepsute linie zamiast przerywać."""
   lines = [_line(1, "2026-10-01T10:00:00"), _line(2, "2026-10-02T10:00:00"), "{ucięte", _line(3, "2026-10-01T12:00:00"),
            _line(4, "2026-10-03T10:00:00"), _line(5, "2026-10-03T12:00:00+02:00")]
   sleeps: list[float] = []

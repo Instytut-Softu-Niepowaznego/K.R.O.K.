@@ -54,6 +54,7 @@ def test_data(monkeypatch):
 
 class _NoLLM:
   def __getattr__(self, name):
+    """Każde użycie klienta kończy test błędem."""
     raise AssertionError("Test próbował użyć prawdziwego klienta LLM")
 
 

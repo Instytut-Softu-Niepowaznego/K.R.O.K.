@@ -7,19 +7,23 @@ from krok.perception import analyze, travel_minutes
 
 
 def data(name: str = "mini"):
+  """Czyste dane presetu."""
   return generate(load_preset(name)).dataset
 
 
 def codes(report, severity="error") -> set[str]:
+  """Kody problemów o danej wadze z raportu."""
   return {p.code for p in report.problems if p.severity == severity}
 
 
 def full_block(ds, bid: str, **scope) -> ResourceBlock:
+  """Blokada zasobów na cały semestr."""
   return ResourceBlock(id=bid, type="resourceBlock", from_=ds.calendar.semester_start, to=ds.calendar.semester_end,
                        scope=Scope(**scope))
 
 
 def rule(ds, rule_id: str):
+  """Reguła z konfiguracji o podanym id."""
   return next(r for r in ds.config.rules if r.id == rule_id)
 
 
@@ -67,30 +71,36 @@ def test_edge_cases_are_detected_across_seeds():
 
 
 def _few_lab_rooms(ds):
+  """Jedna sala lab-it i zajęcia dzienne tylko w poniedziałek."""
   keep = next(r for r in ds.rooms if r.type == "lab-it")
   ds.rooms = [r for r in ds.rooms if r.type != "lab-it" or r is keep]
   ds.config.time_grid.days_by_study_mode["full-time"] = ["Pn"]
 
 
 def _daily_limit(ds):
+  """Limit 1 jednostki dziennie."""
   rule(ds, "max-jednostek-dziennie").params["maxUnits"] = 1
 
 
 def _short_day(ds):
+  """Dzień zajęć kończy się o 08:30."""
   ds.config.time_grid.day_end = "08:30"
 
 
 def _low_limits(ds):
+  """Każdy prowadzący ma limit 1 jednostki tygodniowo."""
   for lec in ds.lecturers:
     lec.max_units_weekly = 1
 
 
 def _blocked_cohort(ds):
+  """Rocznik zablokowany na cały semestr."""
   cohort = next(g for g in ds.groups if g.kind == "cohort")
   ds.calendar.exceptions.append(full_block(ds, "g", group_ids=[cohort.id]))
 
 
 def _pinned_outsider(ds):
+  """Zajęcia przypisane prowadzącemu bez kompetencji przedmiotu."""
   c = ds.classes[0]
   subject = next(s for s in ds.subjects if s.id == c.subject_id)
   subject.lecturer_pools = None
@@ -98,6 +108,7 @@ def _pinned_outsider(ds):
 
 
 def _competence_two_hours(ds):
+  """Prowadzący z kompetencją programowanie mają tylko 2 godziny w tygodniu."""
   for lec in ds.lecturers:
     if "programowanie" in lec.competences:
       lec.availability = [Availability(day="Pn", from_="08:00", to="10:00")]  # jedno spotkanie 95 min, nie więcej
@@ -113,6 +124,7 @@ def _competence_two_hours(ds):
   ("kierunek", _competence_two_hours, "za-malo-czasu-kompetencji"),
 ], ids=lambda x: x.__name__.strip("_") if callable(x) else None)
 def test_each_obstacle_is_detected(preset, broken, code):
+  """Celowo zepsute dane dają w raporcie właściwy kod przeszkody."""
   ds = data(preset)
   broken(ds)
   _, report = analyze(ds)

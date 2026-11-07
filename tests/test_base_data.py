@@ -16,6 +16,7 @@ BUILDINGS_WITH_ROOMS = ["P1", "P2", "P3", "P5", "P6"]
 
 
 def read(name: str):
+  """Wczytuje plik JSON z danych bazowych WJ."""
   return json.loads((BASE / name).read_text(encoding="utf-8"))
 
 

@@ -9,6 +9,7 @@ DOCS = Path(__file__).parent.parent / "docs" / "etap1"
 
 
 def doc_examples(name: str = "model-domeny.md") -> list[dict]:
+  """Bloki JSON z dokumentu w docs/etap1, bez skróconych przykładów z "..."."""
   blocks = re.findall(r"```json\n(.*?)```", (DOCS / name).read_text(encoding="utf-8"), re.S)
   return [json.loads(b) for b in blocks if '"..."' not in b]
 
@@ -39,6 +40,7 @@ def test_criteria_config_matches_model():
 
 
 def test_reference_errors_finds_broken_references():
+  """`reference_errors` zgłasza wiszące odwołania, duplikaty id, cykl grup i błędne pule prowadzących."""
   ds = generate(load_preset("mini")).dataset
   ds.classes[0].group_id = "NIE-MA"
   ds.rooms.append(ds.rooms[0])

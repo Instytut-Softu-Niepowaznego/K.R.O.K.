@@ -17,6 +17,7 @@ pytestmark = pytest.mark.usefixtures("test_data")
 
 
 def text(content):
+  """Odpowiedź modelu samym tekstem."""
   return ChatCompletionMessage(role="assistant", content=content)
 
 
@@ -32,26 +33,32 @@ class FakeClient:
   """Odtwarza zapisane odpowiedzi modelu i pamięć wysłanych wiadomości."""
 
   def __init__(self, replies):
+    """Zapamiętuje kolejne odpowiedzi modelu."""
     self.replies = iter(replies)
     self.calls = 0
     self.messages = []
     self.chat = SimpleNamespace(completions=SimpleNamespace(create=self.create))
 
   def create(self, model, messages, tools):
+    """Zwraca następną odpowiedź i zapamiętuje wysłane wiadomości."""
     self.calls += 1
     self.messages = messages
     return SimpleNamespace(choices=[SimpleNamespace(message=next(self.replies))])
 
   def tool_results(self):
+    """Wyniki narzędzi wysłane do modelu w ostatnim wywołaniu."""
     return [json.loads(m["content"]) for m in self.messages if m["role"] == "tool"]
 
   def nudges(self):
+    """Ponaglenia agenta, czyli wiadomości użytkownika po pierwszej."""
     return [m for m in self.messages if m["role"] == "user"][1:]
 
 
 @pytest.fixture
 def llm(monkeypatch):
+  """Instaluje atrapę LLM z podanymi odpowiedziami."""
   def install(*replies):
+    """Podmienia klienta agenta na atrapę i ją zwraca."""
     client = FakeClient(replies)
     monkeypatch.setattr(agent, "client", client)
     return client
@@ -76,6 +83,7 @@ def test_finishes_only_after_finish_tool_succeeds(llm, saved_plan):
 
 
 def test_tool_errors_go_back_to_model(llm):
+  """Zły JSON i nieznane narzędzie wracają do modelu jako błąd, a agent pracuje dalej."""
   client = llm(call("validate_plan", "{zły json"), call("brak", {}), text("gotowe"))
 
   assert run_agent("sys", "zadanie") == "gotowe"
@@ -85,6 +93,7 @@ def test_tool_errors_go_back_to_model(llm):
 
 
 def test_raises_when_nudges_run_out(llm):
+  """Model, który nie wywołuje narzędzia kończącego mimo ponagleń, kończy pracę błędem."""
   client = llm(*[text("nie umiem")] * 3)
 
   with pytest.raises(RuntimeError, match="save_plan.*nie umiem"):
@@ -93,6 +102,7 @@ def test_raises_when_nudges_run_out(llm):
 
 
 def test_raises_after_max_steps(llm):
+  """Agent przerywa po limicie kroków."""
   client = llm(*itertools.repeat(call("validate_plan", {"lessons": []}), MAX_STEPS + 1))
 
   with pytest.raises(RuntimeError, match=f"{MAX_STEPS} krokach"):

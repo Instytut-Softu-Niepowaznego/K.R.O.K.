@@ -15,6 +15,7 @@ CORRUPT = {"directory": None, "bad-utf8": b"\xff\xfe", "bad-json": b"{zly", "obj
 
 @pytest.fixture(scope="module")
 def base(tmp_path_factory) -> Path:
+  """Poprawne dane presetu mini ze zdarzeniami, wspólne dla testów modułu."""
   out = tmp_path_factory.mktemp("dane")
   assert events_main(["generate", "--preset", "mini", "--out", str(out), "-q"]) == 0
   return out
@@ -22,6 +23,7 @@ def base(tmp_path_factory) -> Path:
 
 @pytest.mark.parametrize("how", CORRUPT)
 def test_every_data_cli_rejects_corrupted_file_with_exit_2(base, tmp_path, capsys, how):
+  """Każde CLI czytające dane kończy się kodem 2 i nazywa zepsuty plik."""
   d = tmp_path / "dane"
   shutil.copytree(base, d)
   (d / "calendar.json").unlink()
